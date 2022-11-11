@@ -2,6 +2,7 @@ import { FormSchema } from '/@/components/Form';
 import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
 import { handleParkCard, handlePressEnter } from './formAction';
+import { Input } from 'ant-design-vue';
 
 const colProps = {
   span: 6,
@@ -267,6 +268,33 @@ export const schemas: FormSchema[] = [
       resultField: 'list',
       fieldKey: 'name',
       valueFormat: 'name',
+    },
+  },
+  {
+    field: 'tradeHall_tradeTypeName',
+    component: 'ApiSelect',
+    label: '交易类型',
+    colProps,
+    componentProps: {
+      getPopupContainer: () => {
+        return document.body;
+      },
+      api: optionsListApi,
+      optionFilterProp: 'label',
+      resultField: 'list',
+      labelField: 'name',
+      valueField: 'id',
+    },
+  },
+  {
+    field: 'detail_goodsAllocation',
+    component: 'Input',
+    label: '有无摊位',
+    colProps,
+    render: ({ model, field }) => {
+      return h(Input, {
+        value: model[field] == 1 ? '有' : '无',
+      });
     },
   },
   {
