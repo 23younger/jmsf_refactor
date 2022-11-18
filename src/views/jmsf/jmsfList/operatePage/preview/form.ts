@@ -8,22 +8,29 @@ const colProps = {
   span: 6,
 };
 
-export const schemas: FormSchema[] = [
+const colProps1 = {
+  span: 4,
+};
+
+export const schemas_basicInfo: FormSchema[] = [
   {
     field: 'enFee_ic',
     component: 'Input',
     label: '客户卡号',
-    colProps: {
-      span: 7,
-    },
-    // disabledLabelWidth: true,
     itemProps: {
       labelCol: {
-        span: 6,
+        span: 4,
       },
+      wrapperCol: {
+        span: 20,
+      },
+    },
+    colProps: {
+      span: 12,
     },
     componentProps: ({ formModel }) => {
       return {
+        disabled: true,
         placeholder: '请输入客户卡号',
         maxLength: 12,
         onkeyup: (e) => {
@@ -32,7 +39,7 @@ export const schemas: FormSchema[] = [
             handlePressEnter(e.target.value);
           }
         },
-        suffix: () =>
+        addonAfter: () =>
           h('div', {}, [
             h(
               'span',
@@ -292,35 +299,218 @@ export const schemas: FormSchema[] = [
     label: '有无摊位',
     colProps,
     render: ({ model, field }) => {
-      return h(Input, {
-        value: model[field] == 1 ? '有' : '无',
-      });
+      return h(Input, { value: model[field] == 1 ? '有' : '无' });
     },
   },
   {
-    field: 'searchTime',
+    field: 'toll_sum',
+    component: 'Input',
+    label: '收费总额',
+    colProps,
+    componentProps: ({ formModel }) => {
+      return {
+        disabled: true,
+        suffix: () =>
+          h('div', {}, [
+            h(
+              'span',
+              {
+                style: {
+                  color: 'blue',
+                  cursor: 'pointer',
+                  marginRight: '5px',
+                },
+                onclick: () => {
+                  handleParkCard('customerIc', formModel);
+                },
+              },
+              '计算',
+            ),
+            h(
+              'span',
+              {
+                style: {
+                  color: 'blue',
+                  cursor: 'pointer',
+                },
+              },
+              '修改项目金额',
+            ),
+          ]),
+      };
+    },
+  },
+  {
+    field: 'frozen_amount',
+    component: 'Input',
+    label: '冻结金额',
+    colProps,
+  },
+  {
+    field: 'enFee_statusText',
+    component: 'Input',
+    label: '状态',
+    colProps,
+  },
+  {
+    field: 'enFee_created',
+    component: 'NewDatePicker',
+    componentProps: {
+      disabled: true,
+      showTime: {
+        format: 'HH:mm:ss',
+      },
+    },
+    label: '进场时间',
+    colProps,
+  },
+  {
+    field: 'enFee_paymentTime',
     component: 'NewDatePicker',
     componentProps: {
       showTime: {
         format: 'HH:mm:ss',
       },
     },
-    label: '时间',
+    label: '收费时间',
     colProps,
-    // defaultValue: '2022-10-24 14:24:22',
-    required: true,
-    rules: [{ required: true, message: '请选择时间' }],
   },
-  // {
-  //   field: 'testSearch',
-  //   label: '测试搜索',
-  //   component: 'ApiAutoComplete',
-  //   componentProps: {
-  //     api: optionsListApi,
-  //     resultField: 'list',
-  //     valueKey: 'id',
-  //     valueFormat: 'id|name',
-  //   },
-  //   defaultValue: '111111',
-  // },
+  {
+    field: 'enFee.cashierName',
+    component: 'Input',
+    label: '收费员',
+    colProps,
+  },
+  {
+    field: 'enFee_backSkinTwo',
+    component: 'Select',
+    label: '二次回皮',
+    colProps,
+    componentProps: {
+      options: [
+        {
+          label: '是',
+          value: '1',
+          key: '1',
+        },
+        {
+          label: '否',
+          value: '0',
+          key: '2',
+        },
+      ],
+    },
+  },
+  {
+    field: 'enFee_holdCardCustomerName',
+    component: 'Input',
+    label: '持卡人',
+    colProps,
+  },
+  {
+    field: 'enFee_holdCardCustomerPhone',
+    component: 'Input',
+    label: '持卡人电话',
+    colProps,
+  },
+  {
+    field: 'enFee_remark',
+    component: 'InputTextArea',
+    label: '备注',
+    itemProps: {
+      labelCol: {
+        span: 4,
+      },
+      wrapperCol: {
+        span: 20,
+      },
+    },
+    colProps: {
+      span: 12,
+    },
+  },
+  {
+    field: 'goods_label',
+    component: 'ApiSelect',
+    label: '货物标签',
+    colProps,
+    componentProps: {
+      getPopupContainer: () => {
+        return document.body;
+      },
+      api: optionsListApi,
+      optionFilterProp: 'label',
+      resultField: 'list',
+      labelField: 'name',
+      valueField: 'id',
+    },
+  },
+];
+
+export const schemas_payInfo: FormSchema[] = [
+  {
+    field: 'steveTeamOrder_steveTeam',
+    component: 'ApiSelect',
+    label: '装卸队',
+    colProps: colProps1,
+    componentProps: {
+      getPopupContainer: () => {
+        return document.body;
+      },
+      api: optionsListApi,
+      optionFilterProp: 'label',
+      resultField: 'list',
+      labelField: 'name',
+      valueField: 'id',
+    },
+  },
+  {
+    field: 'steveTeamOrder_steveRatio',
+    component: 'Select',
+    colProps: colProps1,
+    label: '装卸比例',
+    componentProps: {
+      getPopupContainer: () => {
+        return document.body;
+      },
+      options: [
+        { key: '0', label: '请选择', value: '' },
+        { key: '1', label: '10%', value: '10' },
+        { key: '2', label: '20%', value: '20' },
+        { key: '3', label: '30%', value: '30' },
+        { key: '4', label: '40%', value: '40' },
+        { key: '5', label: '50%', value: '50' },
+        { key: '6', label: '60%', value: '60' },
+        { key: '7', label: '70%', value: '70' },
+        { key: '8', label: '80%', value: '80' },
+        { key: '9', label: '90%', value: '90' },
+        { key: '10', label: '100%', value: '100' },
+      ],
+    },
+    defaultValue: '',
+  },
+  {
+    field: 'dszxf',
+    component: 'Input',
+    colProps: colProps1,
+    label: '代收装卸费',
+  },
+  {
+    field: 'yszxf',
+    component: 'Input',
+    colProps: colProps1,
+    label: '应收装卸费',
+  },
+  {
+    field: 'zxxxglf',
+    component: 'Input',
+    colProps: colProps1,
+    label: '装卸信息管理费',
+  },
+  {
+    field: 'yfzxd',
+    component: 'Input',
+    colProps: colProps1,
+    label: '应付装卸队',
+  },
 ];

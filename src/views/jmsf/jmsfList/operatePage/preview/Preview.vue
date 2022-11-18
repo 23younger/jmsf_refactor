@@ -17,7 +17,37 @@
           <BasicForm @register="registerBasicInfo" :model="formModel" />
         </CollapsePanel>
         <CollapsePanel key="2" header="费用信息">
-          <p>qwert</p>
+          <BasicForm @register="registerPayInfo" />
+          <div class="table-info-wrapper">
+            <table class="ant-table ant-table-bordered">
+              <thead class="ant-table-thead">
+                <tr class="ant-table-row">
+                  <th scope="col">收费项目应收</th>
+                  <th scope="col">收费项目优惠1</th>
+                  <th scope="col">收费项目优惠2</th>
+                  <th scope="col">收费项目实收</th>
+                </tr>
+              </thead>
+              <tbody class="ant-table-tbody">
+                <tr class="ant-table-row">
+                  <td style="text-align: left; padding: 8px 4px">
+                    <Checkbox />进门收费:<Input style="width: auto" />
+                  </td>
+                  <td>1</td>
+                  <td>2</td>
+                  <td>3</td>
+                </tr>
+                <tr class="ant-table-row">
+                  <td style="text-align: left; padding: 8px 4px">
+                    <Checkbox />进门收费:<Input style="width: auto" />
+                  </td>
+                  <td>1</td>
+                  <td>2</td>
+                  <td>3</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </CollapsePanel>
         <CollapsePanel key="3" header="其他信息">
           <p>qwert</p>
@@ -30,10 +60,10 @@
 <script lang="ts" setup>
   import { getFormData } from '/@/api/jmsf/jmsfList';
   import { BasicModal, useModalInner } from '/@/components/Modal';
-  import { Collapse, CollapsePanel } from 'ant-design-vue';
+  import { Collapse, CollapsePanel, Checkbox, Input } from 'ant-design-vue';
   import { onMounted, onUnmounted, ref } from 'vue';
   import { BasicForm, useForm, useComponentRegister } from '/@/components/Form';
-  import { schemas } from './form';
+  import { schemas_basicInfo, schemas_payInfo } from './form';
   import InputLinkSelect from '../../../components/InputLinkSelect.vue';
   const activeKey = ref(['1', '2', '3']);
   const loading = ref<boolean>(false);
@@ -43,17 +73,31 @@
   const formModel = ref<object>({});
   const [register, { setModalProps }] = useModalInner();
   useComponentRegister('InputLinkSelect', InputLinkSelect);
-  const [registerBasicInfo, { validate: validateBasicInfo, getFieldsValue, setFieldsValue }] =
+  const [
+    registerBasicInfo,
+    { validate: validateBasicInfo, getFieldsValue: getFieldsValue_basicInfo },
+  ] = useForm({
+    labelCol: {
+      span: 8,
+    },
+    wrapperCol: {
+      span: 16,
+    },
+    schemas: schemas_basicInfo,
+    showActionButtonGroup: false,
+  });
+  const [registerPayInfo, { validate: validatePayInfo, getFieldsValue: getFieldsValue_payInfo }] =
     useForm({
       labelCol: {
-        span: 8,
+        span: 12,
       },
       wrapperCol: {
-        span: 16,
+        span: 12,
       },
-      schemas: schemas,
-      showResetButton: false,
-      showSubmitButton: false,
+      schemas: schemas_payInfo,
+      showActionButtonGroup: false,
+      // showResetButton: false,
+      // showSubmitButton: false,
     });
   const handleChange = async (visible: boolean) => {
     if (visible) {
@@ -82,7 +126,8 @@
             },
           ],
         },
-        searchTime: '2022-11-04 14:11:23',
+        enFee_created: '2022-11-04 14:11:23',
+        enFee_backSkinTwo: '0',
       };
       setModalProps({ loading: false });
     } else {
@@ -90,9 +135,13 @@
     }
   };
   const handleOk = () => {
-    const result = getFieldsValue();
-    console.log('result', result);
+    const result = getFieldsValue_basicInfo();
+    const result1 = getFieldsValue_payInfo();
+    console.log('result', result, result1);
     validateBasicInfo().then((res) => {
+      console.log('res', res);
+    });
+    validatePayInfo().then((res) => {
       console.log('res', res);
     });
   };
@@ -124,6 +173,22 @@
           margin-left: 0;
         }
       }
+    }
+  }
+
+  .ant-table {
+    text-align: center;
+    width: 100%;
+    border: 1px solid #f0f0f0;
+
+    .ant-table-thead tr th {
+      text-align: center;
+    }
+
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      width: 25%;
+      padding: 8px 0;
     }
   }
 </style>

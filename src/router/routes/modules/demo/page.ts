@@ -34,6 +34,14 @@ const page: AppRouteModule = {
             title: '进门单列表',
           },
         },
+        {
+          path: 'jmsfConfig',
+          name: 'jmsfConfig',
+          component: () => import('/@/views/jmsf/configPage/index.vue'),
+          meta: {
+            title: '进门收费配置页',
+          },
+        },
       ],
     },
     // =============================form start=============================
