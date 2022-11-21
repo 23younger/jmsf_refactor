@@ -1,16 +1,16 @@
 <template>
   <RadioGroup v-model:value="operateType" @click="triggerOperate">
     <RadioButton value="preview">查看</RadioButton>
-    <RadioButton value="edit">编辑</RadioButton>
+    <RadioButton value="update">编辑</RadioButton>
     <RadioButton value="correct">修正</RadioButton>
   </RadioGroup>
-  <PreviewModal @register="registerPreviewModal" title="查看" />
+  <OperateModal @register="registerPreviewModal" />
 </template>
 
 <script lang="ts">
   import { defineComponent, ref } from 'vue';
   import { RadioGroup, RadioButton } from 'ant-design-vue';
-  import PreviewModal from './operatePage/preview/Preview.vue';
+  import OperateModal from './operatePage/index.vue';
   import { useModal } from '/@/components/Modal';
 
   export default defineComponent({
@@ -18,7 +18,7 @@
     components: {
       RadioGroup,
       RadioButton,
-      PreviewModal,
+      OperateModal,
     },
     setup() {
       const operateType = ref<string>('');
@@ -27,9 +27,19 @@
         const type = e.target.value;
         switch (type) {
           case 'preview':
-            openPreviewModal(true);
+            openPreviewModal(true, {
+              type: 'preview',
+              title: '查看',
+              id: '1',
+            });
             break;
-
+          case 'update':
+            openPreviewModal(true, {
+              type: 'update',
+              title: '修改',
+              id: '2',
+            });
+            break;
           default:
             break;
         }

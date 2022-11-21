@@ -82,7 +82,6 @@
           }
           return prev;
         }, [] as OptionsItem[]);
-        console.log('arr', arr);
         return arr;
       });
       const state = ref('');

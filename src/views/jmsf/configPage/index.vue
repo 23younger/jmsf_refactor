@@ -11,7 +11,12 @@
         }"
         width="160"
       >
-        <Menu mode="vertical" v-model:selectedKeys="selectedKeys" style="width: 100%">
+        <Menu
+          mode="vertical"
+          v-model:selectedKeys="selectedKeys"
+          style="width: 100%"
+          @select="handleSelect"
+        >
           <MenuItem v-for="item in configList" :key="item.key">
             <SendOutlined v-if="selectedKeys.indexOf(item.key) > -1" />
             <span style="margin-left: 16px">{{ item.name }}</span>
@@ -20,6 +25,9 @@
       </a-layout-sider>
       <a-layout-content :style="{ marginLeft: '170px' }">
         <div class="table-info-wrapper">
+          <div class="operate-alert">
+            <span style="color: red">可进行拖拽排序</span>
+          </div>
           <Collapse
             :bordered="false"
             expandIconPosition="right"
@@ -132,6 +140,9 @@
               </table>
             </CollapsePanel>
           </Collapse>
+          <div class="operate-tabs">
+            <a-button type="primary" @click="submit">确认</a-button>
+          </div>
         </div>
       </a-layout-content>
     </a-layout>
@@ -140,12 +151,12 @@
 
 <script setup lang="ts">
   import { getConfigList } from '/@/api/jmsf/jmsfList';
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted, ref, unref, toRaw } from 'vue';
   import draggable from 'vuedraggable';
   import { Checkbox, Spin, Menu, MenuItem, Collapse, CollapsePanel } from 'ant-design-vue';
   import { SendOutlined } from '@ant-design/icons-vue';
   const loading = ref<boolean>(false);
-  // const type = ref<string>('preview');
+  const operateType = ref<string>('preview');
   const configList = ref([
     { key: 'preview', name: '查看' },
     { key: 'update', name: '修改' },
@@ -191,12 +202,41 @@
   const changeChecked = (item) => {
     item.isShow = !item.isShow;
   };
+  const handleSelect = async (e) => {
+    operateType.value = e.key;
+    try {
+      loading.value = true;
+      basicInfo.value = [];
+      payInfo.value = [];
+      otherInfo.value = [];
+      const config = await getConfigList();
+      basicInfo.value = config.basicInfo;
+      payInfo.value = config.payInfo;
+      otherInfo.value = config.otherInfo;
+      loading.value = false;
+    } catch (error) {
+      loading.value = false;
+    }
+  };
+  const submit = () => {
+    console.log('basic', toRaw(unref(basicInfo)));
+    console.log('pay', toRaw(unref(payInfo)));
+    console.log('other', toRaw(unref(otherInfo)));
+  };
 </script>
 
 <style scoped lang="less">
   .table-info-wrapper {
     background: #ffffff;
     padding: 12px;
+    position: relative;
+    .operate-alert {
+      margin-bottom: 4px;
+    }
+    .operate-tabs {
+      margin-top: 8px;
+      text-align: right;
+    }
   }
   .drag-tr:hover {
     cursor: move;
@@ -217,5 +257,11 @@
     .ant-table-thead tr th {
       text-align: center;
     }
+  }
+  .operate-tab {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 999;
   }
 </style>
