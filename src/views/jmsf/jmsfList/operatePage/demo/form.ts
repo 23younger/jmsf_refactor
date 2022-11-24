@@ -1,7 +1,7 @@
 import { FormSchema } from '/@/components/Form';
 import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
-import { handleParkCard } from './formAction';
+import { handleParkCard, handlePressEnter } from './formAction';
 import { Input } from 'ant-design-vue';
 
 const colProps = {
@@ -28,9 +28,45 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps: {
       span: 12,
     },
-    componentProps: {
-      disabled: true,
-      maxLength: 12,
+    componentProps: ({ formModel }) => {
+      return {
+        disabled: true,
+        placeholder: '请输入客户卡号',
+        maxLength: 12,
+        onkeyup: (e) => {
+          e.target.value = e.target.value.replace(/\D/g, '');
+          if (e.target.value && e.keyCode == 13) {
+            handlePressEnter(e.target.value);
+          }
+        },
+        addonAfter: () =>
+          h('div', {}, [
+            h(
+              'span',
+              {
+                style: {
+                  color: 'blue',
+                  cursor: 'pointer',
+                  marginRight: '5px',
+                },
+                onclick: () => {
+                  handleParkCard('customerIc', formModel);
+                },
+              },
+              '园区卡',
+            ),
+            h(
+              'span',
+              {
+                style: {
+                  color: 'blue',
+                  cursor: 'pointer',
+                },
+              },
+              '银行卡',
+            ),
+          ]),
+      };
     },
     required: true,
   },
@@ -39,19 +75,13 @@ export const schemas_basicInfo: FormSchema[] = [
     component: 'Input',
     label: '客户姓名',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
     required: true,
   },
   {
     field: 'enFee_customerPhone',
     component: 'Input',
-    label: '手机号码',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
+    label: '手机号码',
   },
   {
     field: 'balance',
@@ -74,7 +104,6 @@ export const schemas_basicInfo: FormSchema[] = [
       labelField: 'name',
       valueField: 'id',
     },
-    required: true,
   },
   {
     field: 'enFee_plate',
@@ -82,27 +111,18 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '车号',
     colProps,
     required: true,
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'enFee_trailerNumber',
     component: 'Input',
     label: '挂号',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'enFee_cardType', // enFee.carTypeCode + enFee.carTypeName
     component: 'Input',
     label: '车型',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'detail_carTypeWeight',
@@ -110,7 +130,6 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '车型自重',
     colProps,
     componentProps: {
-      disabled: true,
       suffix: '公斤',
     },
   },
@@ -120,7 +139,6 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '存皮重量',
     colProps,
     componentProps: {
-      disabled: true,
       suffix: '公斤',
     },
   },
@@ -129,9 +147,6 @@ export const schemas_basicInfo: FormSchema[] = [
     component: 'Input',
     label: '证明类型',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'wRecord_grossWeight',
@@ -141,16 +156,6 @@ export const schemas_basicInfo: FormSchema[] = [
     componentProps: {
       suffix: '公斤',
     },
-    required: ({ model }) => {
-      return model['enFee_payType'] == 2 ? true : false;
-    },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_payType'] == 2) {
-        return [{ required: true, message: '请输入毛重' }];
-      }
-      return [{ required: false }];
-    },
   },
   {
     field: 'wRecord_tareWeight',
@@ -159,16 +164,6 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: {
       suffix: '公斤',
-    },
-    required: ({ model }) => {
-      return model['enFee_payType'] == 2 ? true : false;
-    },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_payType'] == 2) {
-        return [{ required: true, message: '请输入皮重' }];
-      }
-      return [{ required: false }];
     },
   },
   {
@@ -188,16 +183,6 @@ export const schemas_basicInfo: FormSchema[] = [
     componentProps: {
       suffix: '件',
     },
-    required: ({ model }) => {
-      return model['enFee_payType'] == 2 ? true : false;
-    },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_payType'] == 2) {
-        return [{ required: true, message: '请输入皮重' }];
-      }
-      return [{ required: false }];
-    },
   },
   {
     field: 'goods_itemWeight',
@@ -207,16 +192,6 @@ export const schemas_basicInfo: FormSchema[] = [
     componentProps: {
       suffix: '公斤',
     },
-    required: ({ model }) => {
-      return model['enFee_payType'] == 2 ? true : false;
-    },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_payType'] == 2) {
-        return [{ required: true, message: '请输入皮重' }];
-      }
-      return [{ required: false }];
-    },
   },
   {
     field: 'productPrice',
@@ -225,7 +200,6 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: {
       suffix: '元',
-      disabled: true,
     },
   },
   {
@@ -235,7 +209,6 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: ({ formModel }) => {
       return {
-        disabled: true,
         getPopupContainer: () => {
           return document.body;
         },
@@ -272,34 +245,24 @@ export const schemas_basicInfo: FormSchema[] = [
     component: 'InputLinkSelect',
     label: '货区区域',
     colProps,
-    componentProps: {
-      // disabled: true,
-    },
-    itemProps: {
-      validateFirst: false,
-      rules: [
-        {
-          validator(_, value) {
-            console.log('validate', value);
-            if (value.id) {
-              return Promise.resolve();
-            } else {
-              return Promise.reject('请填写货区区域');
-            }
-          },
+    required: true,
+    rules: [
+      {
+        validator(_, value) {
+          if (value.id) {
+            return Promise.resolve();
+          } else {
+            return Promise.reject('请填写货区区域');
+          }
         },
-      ],
-      // required: true,
-    },
+      },
+    ],
   },
   {
     field: 'goods_productName',
     component: 'Input',
     label: '商品',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'goods_origin',
@@ -312,7 +275,6 @@ export const schemas_basicInfo: FormSchema[] = [
       resultField: 'list',
       fieldKey: 'name',
       valueFormat: 'name',
-      disabled: true,
     },
   },
   {
@@ -329,7 +291,6 @@ export const schemas_basicInfo: FormSchema[] = [
       resultField: 'list',
       labelField: 'name',
       valueField: 'id',
-      disabled: true,
     },
   },
   {
@@ -338,7 +299,7 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '有无摊位',
     colProps,
     render: ({ model, field }) => {
-      return h(Input, { value: model[field] == 1 ? '有' : '无', disabled: true });
+      return h(Input, { value: model[field] == 1 ? '有' : '无' });
     },
   },
   {
@@ -384,18 +345,12 @@ export const schemas_basicInfo: FormSchema[] = [
     component: 'Input',
     label: '冻结金额',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'enFee_statusText',
     component: 'Input',
     label: '状态',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'enFee_created',
@@ -413,7 +368,6 @@ export const schemas_basicInfo: FormSchema[] = [
     field: 'enFee_paymentTime',
     component: 'NewDatePicker',
     componentProps: {
-      disabled: true,
       showTime: {
         format: 'HH:mm:ss',
       },
@@ -426,17 +380,25 @@ export const schemas_basicInfo: FormSchema[] = [
     component: 'Input',
     label: '收费员',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'enFee_backSkinTwo',
     component: 'Select',
     label: '二次回皮',
     colProps,
-    render: ({ model, field }) => {
-      return h(Input, { value: model[field] == 1 ? '是' : '否', disabled: true });
+    componentProps: {
+      options: [
+        {
+          label: '是',
+          value: '1',
+          key: '1',
+        },
+        {
+          label: '否',
+          value: '0',
+          key: '2',
+        },
+      ],
     },
   },
   {
@@ -444,18 +406,12 @@ export const schemas_basicInfo: FormSchema[] = [
     component: 'Input',
     label: '持卡人',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'enFee_holdCardCustomerPhone',
     component: 'Input',
     label: '持卡人电话',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'enFee_remark',
@@ -472,11 +428,6 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps: {
       span: 12,
     },
-    componentProps: {
-      disabled: true,
-      maxLength: 50,
-      rows: 1,
-    },
   },
   {
     field: 'goods_label',
@@ -492,7 +443,6 @@ export const schemas_basicInfo: FormSchema[] = [
       resultField: 'list',
       labelField: 'name',
       valueField: 'id',
-      disabled: true,
     },
   },
 ];
@@ -512,7 +462,6 @@ export const schemas_payInfo: FormSchema[] = [
       resultField: 'list',
       labelField: 'name',
       valueField: 'id',
-      disabled: true,
     },
   },
   {
@@ -537,7 +486,6 @@ export const schemas_payInfo: FormSchema[] = [
         { key: '9', label: '90%', value: '90' },
         { key: '10', label: '100%', value: '100' },
       ],
-      disabled: true,
     },
     defaultValue: '',
   },
@@ -546,36 +494,24 @@ export const schemas_payInfo: FormSchema[] = [
     component: 'Input',
     colProps: colProps1,
     label: '代收装卸费',
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'yszxf',
     component: 'Input',
     colProps: colProps1,
     label: '应收装卸费',
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'zxxxglf',
     component: 'Input',
     colProps: colProps1,
     label: '装卸信息管理费',
-    componentProps: {
-      disabled: true,
-    },
   },
   {
     field: 'yfzxd',
     component: 'Input',
     colProps: colProps1,
     label: '应付装卸队',
-    componentProps: {
-      disabled: true,
-    },
   },
 ];
 

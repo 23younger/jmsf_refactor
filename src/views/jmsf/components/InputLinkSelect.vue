@@ -1,17 +1,29 @@
 <template>
   <Row>
     <Col span="10">
-      <Input @change="inputChange" v-model:value="state.number" />
+      <Input
+        v-bind="$attrs"
+        @change="inputChange"
+        :disabled="props.disabled"
+        v-model:value="state.number"
+      />
     </Col>
     <Col span="14">
-      <Select :options="state.options" v-model:value="state.id" @change="selectChange" />
+      <Select
+        v-bind="$attrs"
+        :options="state.options"
+        :disabled="props.disabled"
+        v-model:value="state.id"
+        @change="selectChange"
+      />
     </Col>
   </Row>
 </template>
 
 <script lang="ts">
-  import { defineComponent, watchEffect, reactive, toRaw } from 'vue';
+  import { defineComponent, watchEffect, reactive, toRaw, getCurrentInstance } from 'vue';
   import { Row, Col, Input, Select } from 'ant-design-vue';
+  import { useRuleFormItem } from '/@/hooks/component/useFormItem';
 
   interface regionValue {
     id: number | string | null | undefined;
@@ -32,15 +44,22 @@
         type: Object as PropType<regionValue>,
         default: () => ({}),
       },
+      disabled: {
+        type: Boolean,
+        default: false,
+      },
     },
     emits: ['change'],
     setup(props, { emit }) {
-      console.log('props', props);
       const state = reactive<regionValue>({
         id: null,
         number: '',
         options: [],
       });
+      const instance = getCurrentInstance();
+      console.log('instance', instance);
+      const [state1] = useRuleFormItem(props);
+      console.log('state1', state1);
       watchEffect(() => {
         state.id = props.value.id || null;
         state.number = props.value.number || '';
@@ -71,7 +90,7 @@
         state.number = option.number || '';
         emit('change', toRaw(state));
       };
-      return { state, inputChange, selectChange };
+      return { state, props, inputChange, selectChange };
     },
   });
 </script>

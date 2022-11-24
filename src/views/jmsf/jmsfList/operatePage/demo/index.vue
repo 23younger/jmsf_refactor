@@ -28,7 +28,7 @@
             <tbody class="ant-table-tbody">
               <tr class="ant-table-row">
                 <td style="text-align: left; padding: 8px 4px">
-                  <Checkbox disabled="true" />进门收费:<Input style="width: auto" disabled="true" />
+                  <Checkbox />进门收费:<Input style="width: auto" />
                 </td>
                 <td>1</td>
                 <td>2</td>
@@ -36,7 +36,7 @@
               </tr>
               <tr class="ant-table-row">
                 <td style="text-align: left; padding: 8px 4px">
-                  <Checkbox disabled="true" />进门收费:<Input style="width: auto" disabled="true" />
+                  <Checkbox />进门收费:<Input style="width: auto" />
                 </td>
                 <td>1</td>
                 <td>2</td>
@@ -135,7 +135,7 @@
     validatePayInfo().then((res) => {
       console.log('res', res);
     });
-    // emit('set-modal', { visible: false });
+    emit('set-modal', { visible: false });
   };
   onMounted(async () => {
     try {
@@ -146,8 +146,7 @@
       otherInfo.value = config.otherInfo;
       loading.value = false;
       formModel.value = {
-        enFee_payType: '2',
-        enFee_depName: '1',
+        enFee_depName: 1,
         region_Info: {
           firstFetch: true,
           id: null,
@@ -205,10 +204,6 @@
 
   ::v-deep(.ant-collapse-content) {
     padding: 10px 0;
-  }
-
-  ::v-deep(.ant-input[disabled]) {
-    color: #000;
   }
 
   .ant-table {

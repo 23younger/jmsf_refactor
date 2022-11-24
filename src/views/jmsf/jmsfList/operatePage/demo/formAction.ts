@@ -8,7 +8,7 @@ const warning = createMessage.warning!;
 
 // 刷园区卡
 export const handleParkCard = (field, formModal) => {
-  console.log('sssss');
+  console.log('sssss', field, formModal);
   formModal[field] = '123456789012';
   // ty_todo 客户姓名、手机号码、卡余额也应该被读取到的卡务信息更新
   return;
