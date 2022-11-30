@@ -1,12 +1,14 @@
 <template>
-  <AutoComplete
-    allowClear
+  <Select
+    showSearch
     v-bind="$attrs"
     v-model:value="state"
-    :options="setOptions"
-    @search="onSearch"
-    @select="onSelect"
-    :get-popup-container="getPopupContainer"
+    :options="getOptions"
+    :showArrow="false"
+    :filter-option="false"
+    :notFoundContent="setNotFoundContent()"
+    @change="handleChange"
+    @search="handleSearch"
   >
     <template #[item]="data" v-for="item in Object.keys($slots)">
       <slot :name="item" v-bind="data || {}"></slot>
@@ -14,34 +16,45 @@
     <template #suffixIcon v-if="loading">
       <LoadingOutlined spin />
     </template>
-    <template #notFoundContent v-if="loading">
-      <span>
+    <template #notFoundContent v-if="loading || notFund">
+      <span v-if="loading">
         <LoadingOutlined spin class="mr-1" />
         {{ t('component.form.apiSelectNotFound') }}
       </span>
+      <span v-else-if="notFund" style="color: #0084f4">
+        <ExclamationCircleOutlined />
+        {{ errTxt }}
+      </span>
     </template>
-  </AutoComplete>
+  </Select>
 </template>
 
 <script lang="ts">
-  import { defineComponent, ref, computed, unref, watch } from 'vue';
-  import { AutoComplete } from 'ant-design-vue';
-  import { LoadingOutlined } from '@ant-design/icons-vue';
+  import { defineComponent, PropType, ref, computed, reactive, toRefs, watchEffect } from 'vue';
+  import { LoadingOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue';
+  import { Select } from 'ant-design-vue';
   import { get, debounce } from 'lodash-es';
   import { useI18n } from '/@/hooks/web/useI18n';
-  import { isFunction, isObject } from '/@/utils/is';
   import { propTypes } from '/@/utils/propTypes';
+  import { isFunction, isNullOrUnDef } from '/@/utils/is';
+  import { useRuleFormItem } from '/@/hooks/component/useFormItem';
+
   interface OptionsItem {
-    text?: string;
+    label: string;
     value: string;
     disabled?: boolean;
+  }
+  interface dataType {
+    notFund?: boolean;
+    loading?: boolean;
+    options?: OptionsItem[];
   }
 
   export default defineComponent({
     name: 'ApiAutoComplete',
-    components: { AutoComplete, LoadingOutlined },
+    components: { Select, LoadingOutlined, ExclamationCircleOutlined },
     props: {
-      value: [String, Object, Number],
+      value: [String, Object],
       api: {
         type: Function as PropType<(arg?: Recordable) => Promise<OptionsItem[]>>,
         default: null,
@@ -51,97 +64,90 @@
         default: () => ({}),
       },
       resultField: propTypes.string.def(''),
-      fieldKey: propTypes.string.def(''), // 返回的字段
+      valueField: propTypes.string.def(''), // 返回的字段
       valueFormat: propTypes.string.def('value'), // option展示方式
       searchKey: propTypes.string.def('keyword'), // 查询条件key
-      popupContainerBody: propTypes.bool.def(false), // 下拉框是否挂载于body
+      errTxt: propTypes.string.def('暂无数据'), // 查询无结果
     },
-    emits: ['change'],
-    setup(props, { emit }) {
+    emits: ['change', 'select'],
+    setup(props, { attrs }) {
       const { t } = useI18n();
-      const loading = ref(false);
-      const options = ref<OptionsItem[]>([]);
-      const getPopupContainer = (triggerNode) => {
-        if (props.popupContainerBody) {
-          return document.body;
-        }
-        return triggerNode.parentNode || document.body;
-      };
+      const emitData = ref<any[]>([]);
+      const [state] = useRuleFormItem(props, 'value', 'change', emitData);
+      const data = reactive<dataType>({
+        notFund: false,
+        loading: false,
+        options: [],
+      });
+
+      const { formValues } = attrs as any;
+      const defaultValue = formValues.schema.defaultValue;
+      if (defaultValue) getSearch(defaultValue);
+      watchEffect(() => {
+        if (defaultValue === props.value) getSearch(defaultValue);
+      });
+
       const formatValue = (obj) => {
         const { valueFormat } = props;
         const valueFormatList = valueFormat.split('|');
-        return valueFormatList.map((v) => obj[v]).join(' | ');
+        return valueFormatList.map((v) => obj?.[v])?.join(' | ');
       };
-      const setOptions = computed(() => {
-        const arr = unref(options).reduce((prev, next: Recordable) => {
+      const getOptions = computed(() => {
+        const { valueField } = props;
+        return data.options?.reduce((prev, next: Recordable) => {
           if (next) {
             prev.push({
               ...next,
-              value: `${formatValue(next)}`,
+              label: formatValue(next),
+              value: next[valueField],
             });
           }
           return prev;
         }, [] as OptionsItem[]);
-        return arr;
       });
-      const state = ref('');
 
-      const onSearch = debounce(getSearchRes, 50);
-      const onSelect = (_, option) => {
-        const { fieldKey } = props;
-        let res = option;
-        if (fieldKey) res = option[fieldKey];
-        emit('change', res);
+      const handleSearch = debounce(getSearch, 300);
+      const handleChange = (_, ...args) => {
+        emitData.value = args;
       };
 
-      watch(
-        () => props.value,
-        async (val, old) => {
-          const { fieldKey, value } = props;
-          if (isObject(val)) {
-            state.value = formatValue(val);
-            onSelect('', val);
-          } else if (val && !old) {
-            await getSearchRes(value);
-            const findOption = setOptions.value.find((v) => v[fieldKey] === value) as OptionsItem;
-            state.value = formatValue(findOption);
-          }
-        },
-        {
-          immediate: true,
-        },
-      );
-
-      async function getSearchRes(val) {
+      async function getSearch(val) {
+        if (isNullOrUnDef(val)) return;
         const { api, searchKey, params, resultField } = props;
         if (!api || !isFunction(api)) return;
-        options.value = [];
+        data.options = [];
+        data.notFund = false;
         try {
-          loading.value = true;
+          data.loading = true;
           const ajaxParams = { ...params, [searchKey]: val, name: val };
           const res = await api(ajaxParams);
           if (Array.isArray(res)) {
-            options.value = res;
+            data.options = res;
             return;
           }
           if (resultField) {
-            options.value = get(res, resultField) || [];
+            data.options = get(res, resultField) || [];
           }
+          if (data.options?.length === 0) data.notFund = true;
         } catch (error) {
+          data.notFund = true;
           console.warn(error);
         } finally {
-          loading.value = false;
+          data.loading = false;
         }
       }
+      const setNotFoundContent = () => {
+        if (!data.loading && !data.notFund) return null;
+      };
 
       return {
         t,
-        setOptions,
-        loading,
-        onSearch,
-        onSelect,
         state,
-        getPopupContainer,
+        ...toRefs(data),
+        getOptions,
+        handleSearch,
+        handleChange,
+        setNotFoundContent,
       };
     },
   });

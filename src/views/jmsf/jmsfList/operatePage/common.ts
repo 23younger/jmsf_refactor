@@ -1,6 +1,8 @@
+import { h } from 'vue';
 import { useMessage } from '/@/hooks/web/useMessage';
 import { readerParkCard } from '/@/utils/public/readerCard';
 import { IDCardEnableCustomer, PublicCustomerAccountApi } from '/@/api/public/customer';
+import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons-vue';
 
 const { createMessage, createErrorModal } = useMessage();
 // const error = createMessage.error!;
@@ -34,4 +36,34 @@ export const handleParkCard = (field, formModal) => {
 export const handlePressEnter = (value: string) => {
   warning('卡号不存在');
   console.log('value', value);
+};
+
+// 查看图片
+export const viewImgs = (imgs: string[]) => {
+  // if (typeof callbackObj == 'undefined') return;
+  // callbackObj.showPictureView(imgs);
+  console.log('imgs', imgs);
+};
+
+export const cusExpandIcon = (props) => {
+  if (props.isActive) {
+    return h(
+      'div',
+      {
+        style: {
+          fontSize: '12px',
+        },
+      },
+      ['收起', h(CaretDownOutlined, { style: { marginLeft: '8px' } })],
+    );
+  }
+  return h(
+    'div',
+    {
+      style: {
+        fontSize: '12px',
+      },
+    },
+    ['展开', h(CaretUpOutlined, { style: { marginLeft: '8px' } })],
+  );
 };

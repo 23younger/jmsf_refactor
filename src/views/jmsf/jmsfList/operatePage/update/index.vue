@@ -1,15 +1,19 @@
 <template>
   <div class="content-wrapper">
     <div class="content-wrapper-header">
-      <h3>车号：237</h3>
-      <h3>收费单号：202210281400010</h3>
-      <h3>总金额：55</h3>
+      车号：<h3>237</h3> 收费单号：<h3>202210281400010</h3> 总金额：<h3>55</h3>
     </div>
-    <Collapse v-model:activeKey="activeKey">
-      <CollapsePanel key="1" header="基础信息">
+    <Collapse
+      v-model:activeKey="activeKey"
+      :bordered="false"
+      expandIconPosition="right"
+      :style="{ background: '#ffffff' }"
+      :expandIcon="cusExpandIcon"
+    >
+      <CollapsePanel key="basic" header="基础信息">
         <BasicForm @register="registerBasicInfo" :model="formModel" />
       </CollapsePanel>
-      <CollapsePanel key="2" header="费用信息">
+      <CollapsePanel key="pay" header="费用信息">
         <BasicForm @register="registerPayInfo" />
         <div class="table-info-wrapper">
           <table class="ant-table ant-table-bordered">
@@ -24,7 +28,9 @@
             <tbody class="ant-table-tbody">
               <tr class="ant-table-row">
                 <td style="text-align: left; padding: 8px 4px">
-                  <Checkbox />进门收费:<Input style="width: auto" />
+                  <Checkbox :disabled="true" />
+                  <span style="margin: 0 6px">进门收费:</span>
+                  <Input style="width: auto" :disabled="true" />
                 </td>
                 <td>1</td>
                 <td>2</td>
@@ -32,7 +38,9 @@
               </tr>
               <tr class="ant-table-row">
                 <td style="text-align: left; padding: 8px 4px">
-                  <Checkbox />进门收费:<Input style="width: auto" />
+                  <Checkbox :disabled="true" />
+                  <span style="margin: 0 6px">进门收费:</span>
+                  <Input style="width: auto" :disabled="true" />
                 </td>
                 <td>1</td>
                 <td>2</td>
@@ -42,8 +50,8 @@
           </table>
         </div>
       </CollapsePanel>
-      <CollapsePanel key="3" header="其他信息">
-        <p>qwert</p>
+      <CollapsePanel key="other" header="其他信息">
+        <BasicForm @register="registerOtherInfo" />
       </CollapsePanel>
     </Collapse>
   </div>
@@ -52,23 +60,22 @@
 
 <script lang="ts" setup>
   import { getFormData } from '/@/api/jmsf/jmsfList';
+  import { cusExpandIcon } from '../common';
   import { Collapse, CollapsePanel, Checkbox, Input } from 'ant-design-vue';
-  import { onMounted, onUnmounted, ref, defineProps, defineEmits } from 'vue';
-  import { BasicForm, useForm, useComponentRegister } from '/@/components/Form';
-  import { schemas_basicInfo, schemas_payInfo } from './form';
-  import InputLinkSelect from '../../../components/InputLinkSelect.vue';
+  import { onMounted, onUnmounted, ref, defineEmits } from 'vue';
+  import { BasicForm, useForm } from '/@/components/Form';
+  import { schemas_basicInfo, schemas_payInfo, schemas_otherInfo } from './form';
   const props = defineProps({
     id: String,
   });
+  console.log('props', props);
   const emit = defineEmits(['set-modal']);
-  console.log('props,emit', props, emit);
-  const activeKey = ref(['1', '2', '3']);
+  const activeKey = ref(['basic', 'pay', 'other']);
   const loading = ref<boolean>(false);
   const basicInfo = ref([]);
   const payInfo = ref([]);
   const otherInfo = ref([]);
   const formModel = ref<object>({});
-  useComponentRegister('InputLinkSelect', InputLinkSelect);
   const [
     registerBasicInfo,
     { validate: validateBasicInfo, getFieldsValue: getFieldsValue_basicInfo },
@@ -93,10 +100,24 @@
       schemas: schemas_payInfo,
       showActionButtonGroup: false,
     });
+  const [
+    registerOtherInfo,
+    { validate: validateOtherInfo, getFieldsValue: getFieldsValue_otherInfo },
+  ] = useForm({
+    labelCol: {
+      span: 8,
+    },
+    wrapperCol: {
+      span: 16,
+    },
+    schemas: schemas_otherInfo,
+    showActionButtonGroup: false,
+  });
   const submit = () => {
     const result = getFieldsValue_basicInfo();
     const result1 = getFieldsValue_payInfo();
-    console.log('result', result, result1);
+    const result2 = getFieldsValue_otherInfo();
+    console.log('result', result, result1, result2);
     validateBasicInfo().then(
       (res) => {
         console.log('res', res);
@@ -108,7 +129,10 @@
     validatePayInfo().then((res) => {
       console.log('res', res);
     });
-    emit('set-modal', { visible: false });
+    validateOtherInfo().then((res) => {
+      console.log('res', res);
+    });
+    // emit('set-modal', { visible: false });
   };
   onMounted(async () => {
     try {
@@ -119,7 +143,8 @@
       otherInfo.value = config.otherInfo;
       loading.value = false;
       formModel.value = {
-        enFee_depName: 1,
+        enFee_payType: '2',
+        enFee_depName: '1',
         region_Info: {
           firstFetch: true,
           id: null,
@@ -153,19 +178,34 @@
 <style scoped lang="less">
   .content-wrapper {
     &-header {
-      color: red;
-      font-size: 20px;
+      color: #000000;
+      font-size: 14px;
+      margin-bottom: 28px;
 
       h3 {
         display: inline-block;
-        margin-left: 20px;
-        color: red;
+        font-size: 18px;
+        color: #000000;
+        margin-right: 14px;
+        margin-bottom: 0;
 
-        &:first-of-type {
-          margin-left: 0;
+        &:last-of-type {
+          margin-right: 0;
         }
       }
     }
+  }
+
+  ::v-deep(.ant-collapse-header) {
+    background: #f0f3f6;
+  }
+
+  ::v-deep(.ant-collapse-content) {
+    padding: 10px 0;
+  }
+
+  ::v-deep(.ant-input[disabled]) {
+    color: #000;
   }
 
   .ant-table {

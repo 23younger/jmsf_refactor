@@ -1,7 +1,7 @@
 import { FormSchema } from '/@/components/Form';
 import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
-import { viewImgs } from '../common';
+import { handleParkCard, handlePressEnter, viewImgs } from '../common';
 import { Input, Button } from 'ant-design-vue';
 
 const colProps = {
@@ -28,11 +28,47 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps: {
       span: 12,
     },
-    componentProps: {
-      disabled: true,
-      maxLength: 12,
+    componentProps: ({ formModel }) => {
+      return {
+        placeholder: '请输入客户卡号',
+        maxLength: 12,
+        onkeyup: (e) => {
+          e.target.value = e.target.value.replace(/\D/g, '');
+          if (e.target.value && e.keyCode == 13) {
+            handlePressEnter(e.target.value); // 验证卡号，读取该卡号相关信息
+          }
+        },
+        addonAfter: () =>
+          h('div', {}, [
+            h(
+              'span',
+              {
+                style: {
+                  color: 'blue',
+                  cursor: 'pointer',
+                  marginRight: '5px',
+                },
+                onclick: () => {
+                  handleParkCard('customerIc', formModel);
+                },
+              },
+              '园区卡',
+            ),
+            h(
+              'span',
+              {
+                style: {
+                  color: 'blue',
+                  cursor: 'pointer',
+                },
+              },
+              '银行卡',
+            ),
+          ]),
+      };
     },
     required: true,
+    rules: [{ required: true }],
   },
   {
     field: 'enFee_customerName',
@@ -43,6 +79,7 @@ export const schemas_basicInfo: FormSchema[] = [
       disabled: true,
     },
     required: true,
+    rules: [{ required: true }],
   },
   {
     field: 'enFee_customerPhone',
@@ -52,6 +89,8 @@ export const schemas_basicInfo: FormSchema[] = [
     componentProps: {
       disabled: true,
     },
+    required: true,
+    rules: [{ required: true }],
   },
   {
     field: 'balance',
@@ -65,10 +104,12 @@ export const schemas_basicInfo: FormSchema[] = [
   {
     field: 'enFee_payType',
     component: 'ApiSelect',
-    label: '支付方式',
+    label: '支付方式', // ty_todo 默认选择刷卡
     colProps,
     componentProps: {
-      disabled: true,
+      getPopupContainer: () => {
+        return document.body;
+      },
       api: optionsListApi,
       optionFilterProp: 'label',
       resultField: 'list',
@@ -76,6 +117,7 @@ export const schemas_basicInfo: FormSchema[] = [
       valueField: 'id',
     },
     required: true,
+    rules: [{ required: true }],
   },
   {
     field: 'enFee_plate',
@@ -83,6 +125,7 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '车号',
     colProps,
     required: true,
+    rules: [{ required: true }],
     componentProps: {
       disabled: true,
     },
@@ -104,6 +147,8 @@ export const schemas_basicInfo: FormSchema[] = [
     componentProps: {
       disabled: true,
     },
+    required: true,
+    rules: [{ required: true }],
   },
   {
     field: 'detail_carTypeWeight',
@@ -144,11 +189,11 @@ export const schemas_basicInfo: FormSchema[] = [
       suffix: '公斤',
     },
     required: ({ model }) => {
-      return model['enFee_payType'] == 2 ? true : false;
+      return model['enFee_payType'] == 1 ? true : false;
     },
     dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_payType'] == 2) {
+      // ty_todo 称重类型为整车时必填
+      if (model['enFee_payType'] == 1) {
         return [{ required: true, message: '请输入毛重' }];
       }
       return [{ required: false }];
@@ -164,11 +209,11 @@ export const schemas_basicInfo: FormSchema[] = [
       suffix: '公斤',
     },
     required: ({ model }) => {
-      return model['enFee_payType'] == 2 ? true : false;
+      return model['enFee_payType'] == 1 ? true : false;
     },
     dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_payType'] == 2) {
+      // ty_todo 称重类型为整车时必填
+      if (model['enFee_payType'] == 1) {
         return [{ required: true, message: '请输入皮重' }];
       }
       return [{ required: false }];
@@ -183,6 +228,8 @@ export const schemas_basicInfo: FormSchema[] = [
       disabled: true,
       suffix: '公斤',
     },
+    required: true,
+    rules: [{ required: true }],
   },
   {
     field: 'goods_qty',
@@ -197,9 +244,9 @@ export const schemas_basicInfo: FormSchema[] = [
       return model['enFee_payType'] == 2 ? true : false;
     },
     dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
+      // ty_todo 称重类型为散件时必填
       if (model['enFee_payType'] == 2) {
-        return [{ required: true, message: '请输入皮重' }];
+        return [{ required: true, message: '请输入件数' }];
       }
       return [{ required: false }];
     },
@@ -217,9 +264,9 @@ export const schemas_basicInfo: FormSchema[] = [
       return model['enFee_payType'] == 2 ? true : false;
     },
     dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
+      // ty_todo 称重类型为整车时必填
       if (model['enFee_payType'] == 2) {
-        return [{ required: true, message: '请输入皮重' }];
+        return [{ required: true, message: '请输入件重' }];
       }
       return [{ required: false }];
     },
@@ -233,23 +280,47 @@ export const schemas_basicInfo: FormSchema[] = [
       suffix: '元',
       disabled: true,
     },
+    required: true,
+    rules: [{ required: true }],
   },
   {
     field: 'enFee_depName',
     component: 'ApiSelect',
     label: '接车部门',
     colProps,
-    componentProps: () => {
+    componentProps: ({ formModel }) => {
       return {
-        disabled: true,
+        getPopupContainer: () => {
+          return document.body;
+        },
         api: optionsListApi,
         optionFilterProp: 'label',
         resultField: 'list',
         labelField: 'name',
         valueField: 'id',
+        onChange: (val) => {
+          console.log('val', val);
+          formModel['region_Info'] = {
+            id: null,
+            name: '',
+            options: [
+              {
+                name: '货区3',
+                number: '2345',
+                id: 3,
+              },
+              {
+                name: '货区4',
+                number: '6789',
+                id: 4,
+              },
+            ],
+          };
+        },
       };
     },
     required: true,
+    rules: [{ required: true, message: '请选择接车部门' }],
   },
   {
     field: 'region_Info',
@@ -257,7 +328,7 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '货区区域',
     colProps,
     componentProps: {
-      disabled: true,
+      // disabled: true,
     },
     itemProps: {
       validateFirst: false,
@@ -273,7 +344,7 @@ export const schemas_basicInfo: FormSchema[] = [
           },
         },
       ],
-      // required: true,
+      required: true,
     },
   },
   {
@@ -284,6 +355,8 @@ export const schemas_basicInfo: FormSchema[] = [
     componentProps: {
       disabled: true,
     },
+    required: true,
+    rules: [{ required: true }],
   },
   {
     field: 'goods_origin',
@@ -291,13 +364,18 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '货物产地',
     colProps,
     componentProps: {
-      popupContainerBody: true,
+      getPopupContainer: () => {
+        return document.body;
+      },
       api: optionsListApi,
       resultField: 'list',
-      fieldKey: 'name',
+      valueField: 'name',
       valueFormat: 'name',
-      disabled: true,
+      searchKey: 'query',
+      errTxt: '该地域名称不存在，请重新输入',
     },
+    required: true,
+    rules: [{ required: true, message: '请输入货物产地' }],
   },
   {
     field: 'tradeHall_tradeTypeName',
@@ -305,6 +383,9 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '交易类型',
     colProps,
     componentProps: {
+      getPopupContainer: () => {
+        return document.body;
+      },
       api: optionsListApi,
       optionFilterProp: 'label',
       resultField: 'list',
@@ -327,9 +408,9 @@ export const schemas_basicInfo: FormSchema[] = [
     component: 'Input',
     label: '收费总额',
     colProps,
-    componentProps: {
-      disabled: true,
-    },
+    required: true,
+    rules: [{ required: true }],
+    slot: 'toll_sum',
   },
   {
     field: 'frozen_amount',
@@ -425,23 +506,25 @@ export const schemas_basicInfo: FormSchema[] = [
       span: 12,
     },
     componentProps: {
-      disabled: true,
-      maxLength: 50,
+      maxLength: 40,
       rows: 1,
     },
   },
   {
     field: 'goods_label',
     component: 'ApiSelect',
-    label: '货物标签',
+    label: '货物标签', // 沈阳市场不可修改
     colProps,
     componentProps: {
+      getPopupContainer: () => {
+        return document.body;
+      },
       api: optionsListApi,
       optionFilterProp: 'label',
       resultField: 'list',
       labelField: 'name',
       valueField: 'id',
-      disabled: true,
+      // disabled: true,
     },
   },
 ];
@@ -453,6 +536,9 @@ export const schemas_payInfo: FormSchema[] = [
     label: '装卸队',
     colProps: colProps1,
     componentProps: {
+      getPopupContainer: () => {
+        return document.body;
+      },
       api: optionsListApi,
       optionFilterProp: 'label',
       resultField: 'list',
@@ -467,6 +553,9 @@ export const schemas_payInfo: FormSchema[] = [
     colProps: colProps1,
     label: '装卸比例',
     componentProps: {
+      getPopupContainer: () => {
+        return document.body;
+      },
       options: [
         { key: '0', label: '请选择', value: '' },
         { key: '1', label: '10%', value: '10' },
@@ -480,7 +569,6 @@ export const schemas_payInfo: FormSchema[] = [
         { key: '9', label: '90%', value: '90' },
         { key: '10', label: '100%', value: '100' },
       ],
-      disabled: true,
     },
     defaultValue: '',
   },
@@ -723,10 +811,17 @@ export const schemas_otherInfo: FormSchema[] = [
   },
   {
     field: 'enFee_feeDepName',
-    component: 'Input',
+    component: 'ApiSelect',
     colProps,
     componentProps: {
-      disabled: true,
+      getPopupContainer: () => {
+        return document.body;
+      },
+      api: optionsListApi,
+      optionFilterProp: 'label',
+      resultField: 'list',
+      labelField: 'name',
+      valueField: 'id',
     },
     label: '收费部门',
   },

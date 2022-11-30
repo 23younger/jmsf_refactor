@@ -2,9 +2,9 @@
   <RadioGroup v-model:value="operateType" @click="triggerOperate">
     <RadioButton value="preview">查看</RadioButton>
     <RadioButton value="update">编辑</RadioButton>
-    <RadioButton value="correct">修正</RadioButton>
+    <RadioButton value="payFee">交费</RadioButton>
   </RadioGroup>
-  <OperateModal @register="registerPreviewModal" />
+  <OperateModal @register="registerOperateModal" @callback="callback" />
 </template>
 
 <script lang="ts">
@@ -22,32 +22,43 @@
     },
     setup() {
       const operateType = ref<string>('');
-      const [registerPreviewModal, { openModal: openPreviewModal }] = useModal();
+      const [registerOperateModal, { openModal: openOperateModal }] = useModal();
       const triggerOperate = (e) => {
         const type = e.target.value;
         switch (type) {
           case 'preview':
-            openPreviewModal(true, {
+            openOperateModal(true, {
               type: 'preview',
               title: '查看',
               id: '1',
             });
             break;
           case 'update':
-            openPreviewModal(true, {
+            openOperateModal(true, {
               type: 'update',
               title: '修改',
               id: '2',
+            });
+            break;
+          case 'payFee':
+            openOperateModal(true, {
+              type: 'payFee',
+              title: '交费',
+              id: '3',
             });
             break;
           default:
             break;
         }
       };
+      const callback = (type) => {
+        console.log('type', type);
+      };
       return {
         operateType,
         triggerOperate,
-        registerPreviewModal,
+        registerOperateModal,
+        callback,
       };
     },
   });

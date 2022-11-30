@@ -11,14 +11,22 @@
   >
     <Update v-if="modalInfo.type === 'update'" @set-modal="setModalProps" :id="modalInfo.id" />
     <Preview v-if="modalInfo.type === 'preview'" @set-modal="setModalProps" :id="modalInfo.id" />
+    <PayFee v-if="modalInfo.type === 'payFee'" @set-modal="setModalProps" :id="modalInfo.id" />
   </BasicModal>
 </template>
 
 <script lang="ts" setup>
-  import { ref, toRaw } from 'vue';
+  import { ref, toRaw, defineEmits } from 'vue';
   import Preview from './preview/index.vue';
   import Update from './update/index.vue';
+  import PayFee from './payFee/index.vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
+  import InputLinkSelect from '../../components/InputLinkSelect.vue';
+  import { useComponentRegister } from '/@/components/Form';
+
+  useComponentRegister('InputLinkSelect', InputLinkSelect);
+
+  const emit = defineEmits(['register', 'callback']);
   const modalInfo = ref({
     type: '',
     title: '',
@@ -33,6 +41,8 @@
     if (visible) {
       console.log('data', modalInfo.value);
     } else {
+      // 用于返回列表后判断是否需要更新列表
+      emit('callback', modalInfo.value.type);
       modalInfo.value = {
         type: '',
         title: '',

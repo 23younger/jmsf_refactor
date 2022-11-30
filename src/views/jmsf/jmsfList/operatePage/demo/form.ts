@@ -154,6 +154,7 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '毛重',
     colProps,
     componentProps: {
+      disabled: true,
       suffix: '公斤',
     },
   },
@@ -163,6 +164,7 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '皮重',
     colProps,
     componentProps: {
+      disabled: true,
       suffix: '公斤',
     },
   },
@@ -172,6 +174,7 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '净重',
     colProps,
     componentProps: {
+      disabled: true,
       suffix: '公斤',
     },
   },
@@ -181,6 +184,7 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '件数',
     colProps,
     componentProps: {
+      disabled: true,
       suffix: '件',
     },
   },
@@ -190,6 +194,7 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '件重',
     colProps,
     componentProps: {
+      disabled: true,
       suffix: '公斤',
     },
   },
@@ -199,6 +204,7 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '单价',
     colProps,
     componentProps: {
+      disabled: true,
       suffix: '元',
     },
   },

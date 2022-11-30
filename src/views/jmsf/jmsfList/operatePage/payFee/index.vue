@@ -11,7 +11,15 @@
       :expandIcon="cusExpandIcon"
     >
       <CollapsePanel key="basic" header="基础信息">
-        <BasicForm @register="registerBasicInfo" :model="formModel" />
+        <BasicForm @register="registerBasicInfo" :model="formModel">
+          <template #toll_sum="{ field, model }">
+            <Input :value="model[field]">
+              <template #addonAfter>
+                <span style="color: blue" @click="calculate">计算</span>
+              </template>
+            </Input>
+          </template>
+        </BasicForm>
       </CollapsePanel>
       <CollapsePanel key="pay" header="费用信息">
         <BasicForm @register="registerPayInfo" />
@@ -28,7 +36,7 @@
             <tbody class="ant-table-tbody">
               <tr class="ant-table-row">
                 <td style="text-align: left; padding: 8px 4px">
-                  <Checkbox :disabled="true" />
+                  <Checkbox />
                   <span style="margin: 0 6px">进门收费:</span>
                   <Input style="width: auto" :disabled="true" />
                 </td>
@@ -38,7 +46,7 @@
               </tr>
               <tr class="ant-table-row">
                 <td style="text-align: left; padding: 8px 4px">
-                  <Checkbox :disabled="true" />
+                  <Checkbox />
                   <span style="margin: 0 6px">进门收费:</span>
                   <Input style="width: auto" :disabled="true" />
                 </td>
@@ -75,7 +83,7 @@
   const basicInfo = ref([]);
   const payInfo = ref([]);
   const otherInfo = ref([]);
-  const formModel = ref<object>({});
+  const formModel = ref<any>({});
   const [
     registerBasicInfo,
     { validate: validateBasicInfo, getFieldsValue: getFieldsValue_basicInfo },
@@ -113,6 +121,10 @@
     schemas: schemas_otherInfo,
     showActionButtonGroup: false,
   });
+  const calculate = () => {
+    // 1、更新表格数据
+    // 2、交费表格中收费项目应收多选框可以点击
+  };
   const submit = () => {
     const result = getFieldsValue_basicInfo();
     const result1 = getFieldsValue_payInfo();
@@ -164,6 +176,7 @@
         },
         enFee_created: '2022-11-04 14:11:23',
         enFee_backSkinTwo: '0',
+        toll_sum: '12345',
       };
       emit('set-modal', { loading: false });
     } catch (error) {
