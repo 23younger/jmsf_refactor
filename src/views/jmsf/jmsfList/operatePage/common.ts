@@ -67,3 +67,10 @@ export const cusExpandIcon = (props) => {
     ['展开', h(CaretUpOutlined, { style: { marginLeft: '8px' } })],
   );
 };
+
+/**
+ * 计算各个金额
+ */
+export const calculate = (model) => {
+  console.log('model', model);
+};

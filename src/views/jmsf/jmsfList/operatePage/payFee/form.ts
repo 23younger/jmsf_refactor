@@ -1,8 +1,9 @@
 import { FormSchema } from '/@/components/Form';
 import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
-import { handleParkCard, handlePressEnter, viewImgs } from '../common';
+import { handleParkCard, handlePressEnter, viewImgs, calculate } from '../common';
 import { Input, Button } from 'ant-design-vue';
+import payTable from '../components/payTable.vue';
 
 const colProps = {
   span: 6,
@@ -13,6 +14,12 @@ const colProps1 = {
 };
 
 export const schemas_basicInfo: FormSchema[] = [
+  {
+    field: 'refs',
+    label: '暂存实例',
+    component: 'Render',
+    ifShow: false,
+  },
   {
     field: 'enFee_ic',
     component: 'Input',
@@ -408,9 +415,32 @@ export const schemas_basicInfo: FormSchema[] = [
     component: 'Input',
     label: '收费总额',
     colProps,
+    componentProps: ({ formModel }) => {
+      return {
+        disabled: true,
+        addonAfter: () =>
+          h(
+            'span',
+            {
+              style: {
+                color: 'blue',
+                cursor: 'pointer',
+                marginRight: '5px',
+              },
+              onclick: () => {
+                calculate(formModel);
+                formModel.refs.payRef.setFieldsValue({
+                  testtable: 'sldkskdsld',
+                });
+                // formModel.testtable = 'kkkkkk';
+              },
+            },
+            '计算',
+          ),
+      };
+    },
     required: true,
     rules: [{ required: true }],
-    slot: 'toll_sum',
   },
   {
     field: 'frozen_amount',
@@ -531,20 +561,32 @@ export const schemas_basicInfo: FormSchema[] = [
 
 export const schemas_payInfo: FormSchema[] = [
   {
+    field: 'refs',
+    label: '暂存实例',
+    component: 'Render',
+    ifShow: false,
+  },
+  {
     field: 'steveTeamOrder_steveTeam',
     component: 'ApiSelect',
     label: '装卸队',
     colProps: colProps1,
-    componentProps: {
-      getPopupContainer: () => {
-        return document.body;
-      },
-      api: optionsListApi,
-      optionFilterProp: 'label',
-      resultField: 'list',
-      labelField: 'name',
-      valueField: 'id',
-      disabled: true,
+    componentProps: ({ formModel }) => {
+      return {
+        getPopupContainer: () => {
+          return document.body;
+        },
+        onChange: (val) => {
+          console.log('e....', val);
+          calculate(formModel);
+        },
+        api: optionsListApi,
+        optionFilterProp: 'label',
+        resultField: 'list',
+        labelField: 'name',
+        valueField: 'id',
+        // disabled: true,
+      };
     },
   },
   {
@@ -608,9 +650,31 @@ export const schemas_payInfo: FormSchema[] = [
       disabled: true,
     },
   },
+  {
+    field: 'testtable',
+    component: 'Input',
+    label: '',
+    itemProps: {
+      labelCol: {
+        span: 0,
+      },
+      wrapperCol: {
+        span: 24,
+      },
+    },
+    render: ({ model, field }) => {
+      return h(payTable, { model, field });
+    },
+  },
 ];
 
 export const schemas_otherInfo: FormSchema[] = [
+  {
+    field: 'refs',
+    label: '暂存实例',
+    component: 'Render',
+    ifShow: false,
+  },
   {
     field: 'totalAndFeeItem_receivableView',
     component: 'Input',
@@ -814,9 +878,6 @@ export const schemas_otherInfo: FormSchema[] = [
     component: 'ApiSelect',
     colProps,
     componentProps: {
-      getPopupContainer: () => {
-        return document.body;
-      },
       api: optionsListApi,
       optionFilterProp: 'label',
       resultField: 'list',

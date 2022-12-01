@@ -1,7 +1,8 @@
 <template>
   <div class="content-wrapper">
     <div class="content-wrapper-header">
-      车号：<h3>237</h3> 收费单号：<h3>202210281400010</h3> 总金额：<h3>55</h3>
+      车号：<h3>{{ headerRef.carNumber }}</h3> 收费单号：<h3>{{ headerRef.payNumber }}</h3>
+      总金额：<h3>{{ headerRef.totalMoney }}</h3>
     </div>
     <Collapse
       v-model:activeKey="activeKey"
@@ -11,55 +12,13 @@
       :expandIcon="cusExpandIcon"
     >
       <CollapsePanel key="basic" header="基础信息">
-        <BasicForm @register="registerBasicInfo" :model="formModel">
-          <template #toll_sum="{ field, model }">
-            <Input :value="model[field]">
-              <template #addonAfter>
-                <span style="color: blue" @click="calculate">计算</span>
-              </template>
-            </Input>
-          </template>
-        </BasicForm>
+        <BasicForm ref="basicRef" @register="registerBasicInfo" :model="formModel" />
       </CollapsePanel>
       <CollapsePanel key="pay" header="费用信息">
-        <BasicForm @register="registerPayInfo" />
-        <div class="table-info-wrapper">
-          <table class="ant-table ant-table-bordered">
-            <thead class="ant-table-thead">
-              <tr class="ant-table-row">
-                <th scope="col">收费项目应收</th>
-                <th scope="col">收费项目优惠1</th>
-                <th scope="col">收费项目优惠2</th>
-                <th scope="col">收费项目实收</th>
-              </tr>
-            </thead>
-            <tbody class="ant-table-tbody">
-              <tr class="ant-table-row">
-                <td style="text-align: left; padding: 8px 4px">
-                  <Checkbox />
-                  <span style="margin: 0 6px">进门收费:</span>
-                  <Input style="width: auto" :disabled="true" />
-                </td>
-                <td>1</td>
-                <td>2</td>
-                <td>3</td>
-              </tr>
-              <tr class="ant-table-row">
-                <td style="text-align: left; padding: 8px 4px">
-                  <Checkbox />
-                  <span style="margin: 0 6px">进门收费:</span>
-                  <Input style="width: auto" :disabled="true" />
-                </td>
-                <td>1</td>
-                <td>2</td>
-                <td>3</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <BasicForm ref="payRef" @register="registerPayInfo" :model="formModel" />
       </CollapsePanel>
       <CollapsePanel key="other" header="其他信息">
-        <BasicForm @register="registerOtherInfo" />
+        <BasicForm ref="otherRef" @register="registerOtherInfo" :model="formModel" />
       </CollapsePanel>
     </Collapse>
   </div>
@@ -69,7 +28,7 @@
 <script lang="ts" setup>
   import { getFormData } from '/@/api/jmsf/jmsfList';
   import { cusExpandIcon } from '../common';
-  import { Collapse, CollapsePanel, Checkbox, Input } from 'ant-design-vue';
+  import { Collapse, CollapsePanel } from 'ant-design-vue';
   import { onMounted, onUnmounted, ref, defineEmits } from 'vue';
   import { BasicForm, useForm } from '/@/components/Form';
   import { schemas_basicInfo, schemas_payInfo, schemas_otherInfo } from './form';
@@ -79,11 +38,18 @@
   console.log('props', props);
   const emit = defineEmits(['set-modal']);
   const activeKey = ref(['basic', 'pay', 'other']);
-  const loading = ref<boolean>(false);
   const basicInfo = ref([]);
   const payInfo = ref([]);
   const otherInfo = ref([]);
   const formModel = ref<any>({});
+  const basicRef = ref();
+  const payRef = ref();
+  const otherRef = ref();
+  const headerRef = ref({
+    carNumber: '237',
+    payNumber: '202210281400010',
+    totalMoney: '55',
+  });
   const [
     registerBasicInfo,
     { validate: validateBasicInfo, getFieldsValue: getFieldsValue_basicInfo },
@@ -121,10 +87,10 @@
     schemas: schemas_otherInfo,
     showActionButtonGroup: false,
   });
-  const calculate = () => {
-    // 1、更新表格数据
-    // 2、交费表格中收费项目应收多选框可以点击
-  };
+  // const calculate = () => {
+  //   // 1、更新表格数据
+  //   // 2、交费表格中收费项目应收多选框可以点击
+  // };
   const submit = () => {
     const result = getFieldsValue_basicInfo();
     const result1 = getFieldsValue_payInfo();
@@ -153,7 +119,6 @@
       basicInfo.value = config.basicInfo;
       payInfo.value = config.payInfo;
       otherInfo.value = config.otherInfo;
-      loading.value = false;
       formModel.value = {
         enFee_payType: '2',
         enFee_depName: '1',
@@ -177,6 +142,13 @@
         enFee_created: '2022-11-04 14:11:23',
         enFee_backSkinTwo: '0',
         toll_sum: '12345',
+        testtable: '222',
+        refs: {
+          basicRef,
+          payRef,
+          otherRef,
+          headerRef,
+        },
       };
       emit('set-modal', { loading: false });
     } catch (error) {
