@@ -3,6 +3,7 @@ import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
 import { handleParkCard, handlePressEnter, viewImgs, calculate } from '../common';
 import { Input, Button } from 'ant-design-vue';
+import utils from '/@/utils/public';
 import payTable from '../components/payTable.vue';
 
 const colProps = {
@@ -337,22 +338,19 @@ export const schemas_basicInfo: FormSchema[] = [
     componentProps: {
       // disabled: true,
     },
-    itemProps: {
-      validateFirst: false,
-      rules: [
-        {
-          validator(_, value) {
-            console.log('validate', value);
-            if (value.id) {
-              return Promise.resolve();
-            } else {
-              return Promise.reject('请填写货区区域');
-            }
-          },
+    rules: [
+      {
+        validator(_, value) {
+          if (value.id) {
+            return Promise.resolve();
+          } else {
+            return Promise.reject('请填写货区区域');
+          }
         },
-      ],
-      required: true,
-    },
+        trigger: 'blur',
+      },
+    ],
+    required: true,
   },
   {
     field: 'goods_productName',
@@ -371,12 +369,9 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '货物产地',
     colProps,
     componentProps: {
-      getPopupContainer: () => {
-        return document.body;
-      },
       api: optionsListApi,
       resultField: 'list',
-      valueField: 'name',
+      valueField: 'id',
       valueFormat: 'name',
       searchKey: 'query',
       errTxt: '该地域名称不存在，请重新输入',
@@ -417,7 +412,8 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: ({ formModel }) => {
       return {
-        disabled: true,
+        // disabled: true,
+        suffix: '元',
         addonAfter: () =>
           h(
             'span',
@@ -441,6 +437,8 @@ export const schemas_basicInfo: FormSchema[] = [
     },
     required: true,
     rules: [{ required: true }],
+    // defaultValue: utils.toThousands(123456789.012),
+    defaultValue: utils.toThousands(123.148),
   },
   {
     field: 'frozen_amount',
@@ -449,6 +447,26 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: {
       disabled: true,
+      suffix: '元',
+    },
+    required: true,
+    dynamicRules: ({ model }) => {
+      return [
+        { required: true, message: '必填' },
+        {
+          validator(_, value) {
+            if (value && !/^\d+$/g.test(value)) {
+              return Promise.reject('请填写正整数');
+            } else if (value && Number(value) > 999999) {
+              return Promise.reject('最大允许输入999999');
+            } else if (value && Number(value) < model['toll_sum']) {
+              return Promise.reject('须大于等于收费总额');
+            } else {
+              return Promise.resolve();
+            }
+          },
+        },
+      ];
     },
   },
   {
@@ -505,7 +523,7 @@ export const schemas_basicInfo: FormSchema[] = [
   {
     field: 'enFee_holdCardCustomerName',
     component: 'Input',
-    label: '持卡人',
+    label: '持卡人', // ty_todo 根据读卡获取
     colProps,
     componentProps: {
       disabled: true,
@@ -514,7 +532,7 @@ export const schemas_basicInfo: FormSchema[] = [
   {
     field: 'enFee_holdCardCustomerPhone',
     component: 'Input',
-    label: '持卡人电话',
+    label: '持卡人电话', // ty_todo 根据读卡获取
     colProps,
     componentProps: {
       disabled: true,
@@ -554,7 +572,6 @@ export const schemas_basicInfo: FormSchema[] = [
       resultField: 'list',
       labelField: 'name',
       valueField: 'id',
-      // disabled: true,
     },
   },
 ];
@@ -847,7 +864,7 @@ export const schemas_otherInfo: FormSchema[] = [
     },
   },
   {
-    field: 'enFee_trxSumText',
+    field: 'enFee_trxSumText', // ty_todo 单价为空即为空 交易额=净重*单价
     component: 'Input',
     colProps,
     componentProps: {
@@ -856,21 +873,43 @@ export const schemas_otherInfo: FormSchema[] = [
     label: '交易额',
   },
   {
-    field: 'goods_shipperName',
-    component: 'Input',
+    field: 'goods_shipperName', // 可以输入客户姓名，手机号，身份证号模糊查询。
+    component: 'ApiAutoComplete',
     colProps,
-    componentProps: {
-      disabled: true,
+    componentProps: ({ formModel }) => {
+      return {
+        api: optionsListApi,
+        resultField: 'list',
+        valueField: 'id',
+        valueFormat: 'name',
+        searchKey: 'query',
+        errTxt: '该地域名称不存在，请重新输入',
+        onChange: (_, row) => {
+          formModel['goods_shipperPhone'] = row.value;
+        },
+      };
     },
     label: '货主姓名',
   },
   {
-    field: 'goods_shipperPhone',
+    field: 'goods_shipperPhone', // 根据货主自动带出
     component: 'Input',
     colProps,
     componentProps: {
-      disabled: true,
+      maxLength: 13,
     },
+    rules: [
+      { max: 13, message: '请输入正确的手机号码' },
+      {
+        validator(_, value) {
+          if (value && !/^\d+$/g.test(value)) {
+            return Promise.reject('请输入正确的手机号码');
+          } else {
+            return Promise.resolve();
+          }
+        },
+      },
+    ],
     label: '货主手机',
   },
   {

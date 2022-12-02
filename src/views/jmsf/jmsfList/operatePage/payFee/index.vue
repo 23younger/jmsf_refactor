@@ -21,8 +21,13 @@
         <BasicForm ref="otherRef" @register="registerOtherInfo" :model="formModel" />
       </CollapsePanel>
     </Collapse>
+    <div class="btn-grp">
+      <a-button @click="submit">取消</a-button>
+      <a-button @click="submit" type="primary">保存</a-button>
+      <a-button @click="submit" type="primary">缴费</a-button>
+      <a-button @click="submit" type="primary">冻结</a-button>
+    </div>
   </div>
-  <a-button @click="submit">确认</a-button>
 </template>
 
 <script lang="ts" setup>
@@ -141,7 +146,7 @@
         },
         enFee_created: '2022-11-04 14:11:23',
         enFee_backSkinTwo: '0',
-        toll_sum: '12345',
+        // toll_sum: '12345',
         testtable: '222',
         refs: {
           basicRef,
@@ -179,6 +184,13 @@
         }
       }
     }
+    .btn-grp {
+      padding: 10px 0;
+      text-align: right;
+      button {
+        margin-left: 8px;
+      }
+    }
   }
 
   ::v-deep(.ant-collapse-header) {
@@ -191,21 +203,5 @@
 
   ::v-deep(.ant-input[disabled]) {
     color: #000;
-  }
-
-  .ant-table {
-    text-align: center;
-    width: 100%;
-    border: 1px solid #f0f0f0;
-
-    .ant-table-thead tr th {
-      text-align: center;
-    }
-
-    .ant-table-thead > tr > th,
-    .ant-table-tbody > tr > td {
-      width: 25%;
-      padding: 8px 0;
-    }
   }
 </style>
