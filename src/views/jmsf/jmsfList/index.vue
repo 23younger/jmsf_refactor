@@ -3,6 +3,10 @@
     <RadioButton value="preview">查看</RadioButton>
     <RadioButton value="update">编辑</RadioButton>
     <RadioButton value="payFee">交费</RadioButton>
+    <RadioButton value="unfreeze">解冻</RadioButton>
+    <RadioButton value="correct">更正</RadioButton>
+    <RadioButton value="amend">修正</RadioButton>
+    <RadioButton value="invalid">作废</RadioButton>
   </RadioGroup>
   <OperateModal @register="registerOperateModal" @callback="callback" />
 </template>
@@ -45,6 +49,34 @@
               type: 'payFee',
               title: '交费',
               id: '3',
+            });
+            break;
+          case 'unfreeze':
+            openOperateModal(true, {
+              type: 'unfreeze',
+              title: '解冻',
+              id: '4',
+            });
+            break;
+          case 'correct':
+            openOperateModal(true, {
+              type: 'correct',
+              title: '更正',
+              id: '5',
+            });
+            break;
+          case 'amend':
+            openOperateModal(true, {
+              type: 'amend',
+              title: '修正',
+              id: '6',
+            });
+            break;
+          case 'invalid':
+            openOperateModal(true, {
+              type: 'invalid',
+              title: '作废',
+              id: '7',
             });
             break;
           default:

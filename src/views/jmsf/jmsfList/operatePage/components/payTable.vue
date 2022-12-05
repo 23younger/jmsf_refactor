@@ -36,6 +36,7 @@
 </template>
 
 <script setup lang="ts">
+  // ty_todo 必填的收费项，复选框不允许取消勾选；非必填的收费项,可手动勾选或取消勾选
   import { Checkbox, Input } from 'ant-design-vue';
   import { computed, defineProps } from 'vue';
   const props = defineProps({
@@ -47,7 +48,6 @@
     const field = props.field;
     return model && field && model[field];
   });
-  console.log('props', props);
   const watchChange = () => {
     const { basicRef, headerRef } = props.model?.refs;
     basicRef.setFieldsValue({

@@ -1,9 +1,8 @@
 import { FormSchema } from '/@/components/Form';
 import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
-import { viewImgs } from '../common';
+import { viewImgs, calculate } from '../common';
 import { Input, Button } from 'ant-design-vue';
-import payTable from '../components/payTable.vue';
 
 const colProps = {
   span: 6,
@@ -14,12 +13,6 @@ const colProps1 = {
 };
 
 export const schemas_basicInfo: FormSchema[] = [
-  {
-    field: 'refs',
-    label: '暂存实例',
-    component: 'Render',
-    ifShow: false,
-  },
   {
     field: 'enFee_ic',
     component: 'Input',
@@ -151,11 +144,11 @@ export const schemas_basicInfo: FormSchema[] = [
       suffix: '公斤',
     },
     required: ({ model }) => {
-      return model['enFee_type'] == 1 ? true : false;
+      return model['enFee_payType'] == 2 ? true : false;
     },
     dynamicRules: ({ model }) => {
       // ty_todo 动态规则
-      if (model['enFee_type'] == 1) {
+      if (model['enFee_payType'] == 2) {
         return [{ required: true, message: '请输入毛重' }];
       }
       return [{ required: false }];
@@ -171,11 +164,11 @@ export const schemas_basicInfo: FormSchema[] = [
       suffix: '公斤',
     },
     required: ({ model }) => {
-      return model['enFee_type'] == 1 ? true : false;
+      return model['enFee_payType'] == 2 ? true : false;
     },
     dynamicRules: ({ model }) => {
       // ty_todo 动态规则
-      if (model['enFee_type'] == 1) {
+      if (model['enFee_payType'] == 2) {
         return [{ required: true, message: '请输入皮重' }];
       }
       return [{ required: false }];
@@ -201,12 +194,12 @@ export const schemas_basicInfo: FormSchema[] = [
       suffix: '件',
     },
     required: ({ model }) => {
-      return model['enFee_type'] == 2 ? true : false;
+      return model['enFee_payType'] == 2 ? true : false;
     },
     dynamicRules: ({ model }) => {
       // ty_todo 动态规则
-      if (model['enFee_type'] == 2) {
-        return [{ required: true, message: '请输入件数' }];
+      if (model['enFee_payType'] == 2) {
+        return [{ required: true, message: '请输入皮重' }];
       }
       return [{ required: false }];
     },
@@ -221,12 +214,12 @@ export const schemas_basicInfo: FormSchema[] = [
       suffix: '公斤',
     },
     required: ({ model }) => {
-      return model['enFee_type'] == 2 ? true : false;
+      return model['enFee_payType'] == 2 ? true : false;
     },
     dynamicRules: ({ model }) => {
       // ty_todo 动态规则
-      if (model['enFee_type'] == 2) {
-        return [{ required: true, message: '请输入件重' }];
+      if (model['enFee_payType'] == 2) {
+        return [{ required: true, message: '请输入皮重' }];
       }
       return [{ required: false }];
     },
@@ -334,9 +327,29 @@ export const schemas_basicInfo: FormSchema[] = [
     component: 'Input',
     label: '收费总额',
     colProps,
-    componentProps: {
-      disabled: true,
+    componentProps: ({ formModel }) => {
+      return {
+        disabled: true,
+        suffix: '元',
+        addonAfter: () =>
+          h(
+            'span',
+            {
+              style: {
+                color: 'blue',
+                cursor: 'pointer',
+                marginRight: '5px',
+              },
+              onclick: () => {
+                calculate(formModel);
+              },
+            },
+            '计算',
+          ),
+      };
     },
+    required: true,
+    rules: [{ required: true }],
   },
   {
     field: 'frozen_amount',
@@ -455,12 +468,6 @@ export const schemas_basicInfo: FormSchema[] = [
 
 export const schemas_payInfo: FormSchema[] = [
   {
-    field: 'refs',
-    label: '暂存实例',
-    component: 'Render',
-    ifShow: false,
-  },
-  {
     field: 'steveTeamOrder_steveTeam',
     component: 'Input',
     label: '装卸队',
@@ -514,31 +521,9 @@ export const schemas_payInfo: FormSchema[] = [
       disabled: true,
     },
   },
-  {
-    field: 'testtable',
-    component: 'Input',
-    label: '',
-    itemProps: {
-      labelCol: {
-        span: 0,
-      },
-      wrapperCol: {
-        span: 24,
-      },
-    },
-    render: ({ model, field }) => {
-      return h(payTable, { model, field });
-    },
-  },
 ];
 
 export const schemas_otherInfo: FormSchema[] = [
-  {
-    field: 'refs',
-    label: '暂存实例',
-    component: 'Render',
-    ifShow: false,
-  },
   {
     field: 'totalAndFeeItem_receivableView',
     component: 'Input',
@@ -746,7 +731,6 @@ export const schemas_otherInfo: FormSchema[] = [
     },
     label: '收费部门',
   },
-  // ty_todo 退款员、退款时间根据该收费单的状态判断是否展示(已退款即展示)
   {
     field: 'detail_operatorName',
     component: 'Input',

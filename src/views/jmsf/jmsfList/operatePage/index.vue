@@ -12,6 +12,10 @@
     <Update v-if="modalInfo.type === 'update'" @set-modal="setModalProps" :id="modalInfo.id" />
     <Preview v-if="modalInfo.type === 'preview'" @set-modal="setModalProps" :id="modalInfo.id" />
     <PayFee v-if="modalInfo.type === 'payFee'" @set-modal="setModalProps" :id="modalInfo.id" />
+    <Unfreeze v-if="modalInfo.type === 'unfreeze'" @set-modal="setModalProps" :id="modalInfo.id" />
+    <Correct v-if="modalInfo.type === 'correct'" @set-modal="setModalProps" :id="modalInfo.id" />
+    <Amend v-if="modalInfo.type === 'amend'" @set-modal="setModalProps" :id="modalInfo.id" />
+    <Invalid v-if="modalInfo.type === 'invalid'" @set-modal="setModalProps" :id="modalInfo.id" />
   </BasicModal>
 </template>
 
@@ -20,6 +24,10 @@
   import Preview from './preview/index.vue';
   import Update from './update/index.vue';
   import PayFee from './payFee/index.vue';
+  import Unfreeze from './unfreeze/index.vue';
+  import Correct from './correct/index.vue';
+  import Amend from './amend/index.vue';
+  import Invalid from './invalid/index.vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
   import InputLinkSelect from '../../components/InputLinkSelect.vue';
   import { useComponentRegister } from '/@/components/Form';
