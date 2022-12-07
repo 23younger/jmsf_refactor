@@ -6,5 +6,6 @@ export enum OPERATETYPE {
   UNFREEZE = 'unfreeze', // 解冻
   CORRECT = 'correct', // 更正
   AMEND = 'amend', // 修正
+  INVALID = 'invalid', // 作废
   REFUND = 'refund', // 退款
 }

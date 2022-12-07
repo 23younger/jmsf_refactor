@@ -31,7 +31,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { getFormData } from '/@/api/jmsf/jmsfList';
+  import { getConfig } from '/@/api/jmsf/jmsfList';
   import { cusExpandIcon } from '../common';
   import { Collapse, CollapsePanel } from 'ant-design-vue';
   import { onMounted, onUnmounted, ref, defineEmits } from 'vue';
@@ -120,7 +120,7 @@
   onMounted(async () => {
     try {
       emit('set-modal', { loading: true });
-      const config = await getFormData();
+      const config = await getConfig();
       basicInfo.value = config.basicInfo;
       payInfo.value = config.payInfo;
       otherInfo.value = config.otherInfo;

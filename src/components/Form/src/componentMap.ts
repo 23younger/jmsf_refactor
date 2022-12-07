@@ -31,6 +31,7 @@ import { StrengthMeter } from '/@/components/StrengthMeter';
 import { IconPicker } from '/@/components/Icon';
 import { CountdownInput } from '/@/components/CountDown';
 import NewDatePicker from './components/NewDatePicker.vue';
+import NewRangePicker from './components/NewRangePicker.vue';
 import ApiAutoComplete from './components/ApiAutoComplete.vue';
 
 const componentMap = new Map<ComponentType, Component>();
@@ -71,6 +72,7 @@ componentMap.set('Upload', BasicUpload);
 componentMap.set('Divider', Divider);
 componentMap.set('NewDatePicker', NewDatePicker);
 componentMap.set('ApiAutoComplete', ApiAutoComplete);
+componentMap.set('NewRangePicker', NewRangePicker);
 
 export function add(compName: ComponentType, component: Component) {
   componentMap.set(compName, component);

@@ -114,5 +114,6 @@ export type ComponentType =
   | 'Rate'
   | 'Divider'
   | 'NewDatePicker'
+  | 'NewRangePicker'
   | 'ApiAutoComplete'
   | 'InputLinkSelect';

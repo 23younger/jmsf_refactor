@@ -33,16 +33,15 @@
             expandIconPosition="right"
             :style="{ background: '#ffffff' }"
             v-model:activeKey="activeKey"
+            :expandIcon="cusExpandIcon"
           >
             <CollapsePanel key="basic" header="基本信息">
-              <template #extra>{{ activeKey.indexOf('basic') > -1 ? '收起' : '展开' }}</template>
               <table class="ant-table">
                 <thead class="ant-table-thead">
                   <tr>
                     <th>序号</th>
                     <th>名称</th>
                     <th>是否必填</th>
-                    <th>是否显示</th>
                   </tr>
                 </thead>
                 <draggable
@@ -63,21 +62,18 @@
                           :disabled="element.isRequired"
                         />
                       </td>
-                      <td>{{ element.name }}</td>
                     </tr>
                   </template>
                 </draggable>
               </table>
             </CollapsePanel>
             <CollapsePanel key="pay" header="费用信息">
-              <template #extra>{{ activeKey.indexOf('pay') > -1 ? '收起' : '展开' }}</template>
               <table class="ant-table">
                 <thead class="ant-table-thead">
                   <tr>
                     <th>序号</th>
                     <th>名称</th>
                     <th>是否必填</th>
-                    <th>是否显示</th>
                   </tr>
                 </thead>
                 <draggable
@@ -98,21 +94,18 @@
                           :disabled="element.isRequired"
                         />
                       </td>
-                      <td>{{ element.name }}</td>
                     </tr>
                   </template>
                 </draggable>
               </table>
             </CollapsePanel>
             <CollapsePanel key="other" header="其他信息">
-              <template #extra>{{ activeKey.indexOf('other') > -1 ? '收起' : '展开' }}</template>
               <table class="ant-table">
                 <thead class="ant-table-thead">
                   <tr>
                     <th>序号</th>
                     <th>名称</th>
                     <th>是否必填</th>
-                    <th>是否显示</th>
                   </tr>
                 </thead>
                 <draggable
@@ -133,7 +126,6 @@
                           :disabled="element.isRequired"
                         />
                       </td>
-                      <td>{{ element.name }}</td>
                     </tr>
                   </template>
                 </draggable>
@@ -155,6 +147,7 @@
   import draggable from 'vuedraggable';
   import { Checkbox, Spin, Menu, MenuItem, Collapse, CollapsePanel } from 'ant-design-vue';
   import { SendOutlined } from '@ant-design/icons-vue';
+  import { cusExpandIcon } from '../jmsfList/operatePage/common';
   const loading = ref<boolean>(false);
   const operateType = ref<string>('preview');
   const configList = ref([
@@ -165,6 +158,7 @@
     { key: 'unfreeze', name: '解冻' },
     { key: 'correct', name: '更正' },
     { key: 'amend', name: '修正' },
+    { key: 'invalid', name: '作废' },
     { key: 'refund', name: '退款' },
   ]);
   const activeKey = ref<string[]>(['basic', 'pay', 'other']);
@@ -176,9 +170,11 @@
     try {
       loading.value = true;
       const config = await getConfigList();
-      basicInfo.value = config.basicInfo;
-      payInfo.value = config.payInfo;
-      otherInfo.value = config.otherInfo;
+      if (config && config.length) {
+        basicInfo.value = config.filter((v) => v.group === 'basic');
+        payInfo.value = config.filter((v) => v.group === 'pay');
+        otherInfo.value = config.filter((v) => v.group === 'other');
+      }
       loading.value = false;
     } catch (error) {
       loading.value = false;
@@ -210,9 +206,11 @@
       payInfo.value = [];
       otherInfo.value = [];
       const config = await getConfigList();
-      basicInfo.value = config.basicInfo;
-      payInfo.value = config.payInfo;
-      otherInfo.value = config.otherInfo;
+      if (config && config.length) {
+        basicInfo.value = config.filter((v) => v.group === 'basic');
+        payInfo.value = config.filter((v) => v.group === 'pay');
+        otherInfo.value = config.filter((v) => v.group === 'other');
+      }
       loading.value = false;
     } catch (error) {
       loading.value = false;

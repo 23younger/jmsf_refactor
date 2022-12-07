@@ -13,6 +13,13 @@ const colProps1 = {
   span: 4,
 };
 
+export const itemRef = {
+  field: 'refs',
+  label: '暂存实例',
+  component: 'Render',
+  ifShow: false,
+};
+
 export const schemas_basicInfo: FormSchema[] = [
   {
     field: 'refs',
