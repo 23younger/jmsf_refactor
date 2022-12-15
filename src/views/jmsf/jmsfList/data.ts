@@ -384,7 +384,7 @@ export const basicColumnsData: BasicColumn[] = [
     sorter: true,
   },
   {
-    dataIndex: 'backSkinTwo',
+    dataIndex: 'enFee_backSkinTwo',
     title: '二次回皮',
     sorter: true,
   },

@@ -128,6 +128,7 @@
       formModel.value = {
         enFee_payType: '1',
         enFee_depName: '1',
+        enFee_type: '1',
         region_Info: {
           firstFetch: true,
           id: null,

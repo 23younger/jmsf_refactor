@@ -21,7 +21,7 @@ declare global {
   //   // Global vue app instance
   //   __APP__: App<Element>;
   // }
-
+  const callbackObj: any;
   // vue
   declare type PropType<T> = VuePropType<T>;
   declare type VueNode = VNodeChild | JSX.Element;

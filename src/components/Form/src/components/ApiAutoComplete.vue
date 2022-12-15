@@ -119,7 +119,8 @@
         data.notFund = false;
         try {
           data.loading = true;
-          const ajaxParams = { ...params, [searchKey]: val, name: val };
+          // const ajaxParams = { ...params, [searchKey]: val, name: val };
+          const ajaxParams = { ...params, [searchKey]: val };
           const res = await api(ajaxParams);
           if (Array.isArray(res)) {
             data.options = res;

@@ -1,10 +1,18 @@
 import { FormSchema } from '/@/components/Form';
 import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
-import { handleParkCard, handlePressEnter, viewImgs, calculate } from '../common';
+import { handleParkCard, handleBankCard, handlePressEnter, viewImgs, calculate } from '../common';
 import { Input, Button } from 'ant-design-vue';
 import utils from '/@/utils/public';
 import payTable from '../components/payTable.vue';
+import {
+  findByUserName,
+  findDistrictByDepId,
+  findJmsfCarType,
+  findProduct,
+  listProves,
+  listGoodsTags,
+} from '/@/api/jmsf/jmsfList';
 
 const colProps = {
   span: 6,
@@ -19,6 +27,12 @@ export const schemas_basicInfo: FormSchema[] = [
     field: 'refs',
     label: '暂存实例',
     component: 'Render',
+    ifShow: false,
+  },
+  {
+    field: 'enFee_type',
+    label: '称重类型',
+    component: 'Input',
     ifShow: false,
   },
   {
@@ -43,7 +57,7 @@ export const schemas_basicInfo: FormSchema[] = [
         onkeyup: (e) => {
           e.target.value = e.target.value.replace(/\D/g, '');
           if (e.target.value && e.keyCode == 13) {
-            handlePressEnter(e.target.value); // 验证卡号，读取该卡号相关信息
+            handlePressEnter(e.target.value, formModel); // 验证卡号，读取该卡号相关信息
           }
         },
         addonAfter: () =>
@@ -57,7 +71,7 @@ export const schemas_basicInfo: FormSchema[] = [
                   marginRight: '5px',
                 },
                 onclick: () => {
-                  handleParkCard('customerIc', formModel);
+                  handleParkCard(formModel);
                 },
               },
               '园区卡',
@@ -68,6 +82,9 @@ export const schemas_basicInfo: FormSchema[] = [
                 style: {
                   color: 'blue',
                   cursor: 'pointer',
+                },
+                onclick: () => {
+                  handleBankCard(formModel);
                 },
               },
               '银行卡',
@@ -155,11 +172,10 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: ({ formModel }) => {
       return {
-        api: optionsListApi,
-        resultField: 'list',
+        api: findJmsfCarType,
         valueField: 'id',
         valueFormat: 'name',
-        searchKey: 'query',
+        searchKey: 'keyword',
         errTxt: '该地域名称不存在，请重新输入',
         onChange: (_, val) => {
           formModel['detail_carTypeWeight'] = val.value;
@@ -174,7 +190,7 @@ export const schemas_basicInfo: FormSchema[] = [
       if (model['enFee_payType'] == 2) {
         return [{ required: false }];
       }
-      return [{ required: true }];
+      return [{ required: true, message: '请输入' }];
     },
   },
   {
@@ -206,7 +222,7 @@ export const schemas_basicInfo: FormSchema[] = [
       getPopupContainer: () => {
         return document.body;
       },
-      api: optionsListApi,
+      api: listProves,
       optionFilterProp: 'label',
       resultField: 'list',
       labelField: 'name',
@@ -219,9 +235,13 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '毛重',
     colProps,
     componentProps: ({ formModel }) => {
+      console.log('sdsdsdsd', formModel['enFee_type']);
       return {
         onkeyup: (e) => {
           e.target.value = e.target.value.replace(/\D/g, '');
+          if (/^0/.test(e.target.value)) {
+            e.target.value = '';
+          }
         },
         disabled: formModel['enFee_type'] == 1 ? false : true,
         suffix: '公斤',
@@ -234,11 +254,11 @@ export const schemas_basicInfo: FormSchema[] = [
       // ty_todo 称重类型为整车时必填
       if (model['enFee_type'] == 1) {
         return [
-          { required: true, message: '请输入1-999999的数字' },
+          { required: true, message: '请输入1-999999的整数' },
           {
             validator(_, value) {
               if (value && !/\b[1-9]\d{0,5}\b/.test(value)) {
-                return Promise.reject('仅限输入1-999999');
+                return Promise.reject('仅限输入1-999999的整数');
               } else {
                 return Promise.resolve();
               }
@@ -258,6 +278,9 @@ export const schemas_basicInfo: FormSchema[] = [
       return {
         onkeyup: (e) => {
           e.target.value = e.target.value.replace(/\D/g, '');
+          if (/^0/.test(e.target.value)) {
+            e.target.value = '';
+          }
         },
         disabled: formModel['enFee_type'] == 1 ? false : true,
         suffix: '公斤',
@@ -270,11 +293,11 @@ export const schemas_basicInfo: FormSchema[] = [
       // ty_todo 称重类型为整车时必填
       if (model['enFee_type'] == 1) {
         return [
-          { required: true, message: '请输入1-999999的数字' },
+          { required: true, message: '请输入1-999999的整数' },
           {
             validator(_, value) {
               if (value && !/\b[1-9]\d{0,5}\b/.test(value)) {
-                return Promise.reject('仅限输入1-999999');
+                return Promise.reject('仅限输入1-999999的整数');
               } else {
                 return Promise.resolve();
               }
@@ -304,6 +327,12 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: ({ formModel }) => {
       return {
+        onkeyup: (e) => {
+          e.target.value = e.target.value.replace(/\D/g, '');
+          if (/^0/.test(e.target.value)) {
+            e.target.value = '';
+          }
+        },
         disabled: formModel['enFee_type'] == 1 ? true : false,
         suffix: '件',
       };
@@ -315,11 +344,11 @@ export const schemas_basicInfo: FormSchema[] = [
       // ty_todo 称重类型为散件时必填
       if (model['enFee_type'] == 2) {
         return [
-          { required: true, message: '请输入1-999999的数字' },
+          { required: true, message: '请输入1-999999的整数' },
           {
             validator(_, value) {
               if (value && !/\b[1-9]\d{0,5}\b/.test(value)) {
-                return Promise.reject('仅限输入1-999999');
+                return Promise.reject('仅限输入1-999999的整数');
               } else {
                 return Promise.resolve();
               }
@@ -337,22 +366,28 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: ({ formModel }) => {
       return {
+        onkeyup: (e) => {
+          e.target.value = e.target.value.replace(/\D/g, '');
+          if (/^0/.test(e.target.value)) {
+            e.target.value = '';
+          }
+        },
         disabled: formModel['enFee_type'] == 1 ? true : false,
         suffix: '公斤',
       };
     },
     required: ({ model }) => {
-      return model['enFee_payType'] == 2 ? true : false;
+      return model['enFee_type'] == 2 ? true : false;
     },
     dynamicRules: ({ model }) => {
       // ty_todo 称重类型为整车时必填
       if (model['enFee_type'] == 2) {
         return [
-          { required: true, message: '请输入1-999999的数字' },
+          { required: true, message: '请输入1-999999的整数' },
           {
             validator(_, value) {
               if (value && !/\b[1-9]\d{0,5}\b/.test(value)) {
-                return Promise.reject('仅限输入1-999999');
+                return Promise.reject('仅限输入1-999999的整数');
               } else {
                 return Promise.resolve();
               }
@@ -390,8 +425,11 @@ export const schemas_basicInfo: FormSchema[] = [
         resultField: 'list',
         labelField: 'name',
         valueField: 'id',
-        onChange: (val) => {
-          console.log('val', val);
+        onChange: async (val, row) => {
+          console.log('val', val, row);
+          const data = await findDistrictByDepId({ depId: val });
+          console.log('region_Info', data);
+          // ty_todo 将data处理赋值给region_Info的options
           formModel['region_Info'] = {
             id: null,
             name: '',
@@ -442,11 +480,10 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '商品',
     colProps,
     componentProps: {
-      api: optionsListApi,
-      resultField: 'list',
+      api: findProduct,
       valueField: 'id',
       valueFormat: 'name',
-      searchKey: 'query',
+      searchKey: 'keyword',
       errTxt: '该品类名称不存在，请重新输入',
     },
     required: true,
@@ -654,7 +691,7 @@ export const schemas_basicInfo: FormSchema[] = [
       getPopupContainer: () => {
         return document.body;
       },
-      api: optionsListApi,
+      api: listGoodsTags,
       optionFilterProp: 'label',
       resultField: 'list',
       labelField: 'name',
@@ -812,9 +849,9 @@ export const schemas_otherInfo: FormSchema[] = [
       disabled: true,
       options: [
         { label: '整车称重', value: '1', key: '1' },
-        { label: '散件称重', value: '1', key: '1' },
-        { label: '本地配送', value: '1', key: '1' },
-        { label: '预过磅', value: '1', key: '1' },
+        { label: '散件称重', value: '2', key: '2' },
+        { label: '本地配送', value: '3', key: '3' },
+        { label: '预过磅', value: '4', key: '4' },
       ],
     },
   },
@@ -906,11 +943,10 @@ export const schemas_otherInfo: FormSchema[] = [
     component: 'ApiAutoComplete',
     colProps,
     componentProps: {
-      api: optionsListApi,
-      resultField: 'list',
+      api: findByUserName,
       valueField: 'id',
       valueFormat: 'name',
-      searchKey: 'query',
+      searchKey: 'name',
       errTxt: '该进门接车员不存在，请重新输入',
     },
     label: '进门接车员',
@@ -922,12 +958,11 @@ export const schemas_otherInfo: FormSchema[] = [
     component: 'ApiAutoComplete',
     colProps,
     componentProps: {
-      api: optionsListApi,
-      resultField: 'list',
+      api: findByUserName,
       valueField: 'id',
       valueFormat: 'name',
-      searchKey: 'query',
-      errTxt: '该进门接车员不存在，请重新输入',
+      searchKey: 'name',
+      errTxt: '该出门接车员不存在，请重新输入',
     },
     label: '出门接车员',
   },
