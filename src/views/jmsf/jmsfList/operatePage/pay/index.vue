@@ -22,12 +22,14 @@
       </CollapsePanel>
     </Collapse>
     <div class="btn-grp">
-      <a-button @click="submit">取消</a-button>
-      <a-button @click="submit" type="primary">保存</a-button>
-      <a-button @click="submit" type="primary">缴费</a-button>
-      <a-button @click="submit" type="primary">冻结</a-button>
+      <a-button @click="cancel">取消</a-button>
+      <a-button @click="save" type="primary">保存</a-button>
+      <a-button @click="handleOpt('pay')" type="primary">缴费</a-button>
+      <a-button @click="handleOpt('freeze')" type="primary">冻结</a-button>
     </div>
   </div>
+  <payModal @register="registerPayModal" @callback="callbackPay" />
+  <onlinePayModal @register="registerOnlinePayModal" @callback="callbackPay" />
 </template>
 
 <script lang="ts" setup>
@@ -37,11 +39,14 @@
   import { onMounted, onUnmounted, ref, defineEmits } from 'vue';
   import { BasicForm, useForm } from '/@/components/Form';
   import { schemas_basicInfo, schemas_payInfo, schemas_otherInfo } from './form';
+  import payModal from './payModal.vue';
+  import onlinePayModal from './onlinePayModal.vue';
+  import { useModal } from '/@/components/Modal';
   const props = defineProps({
     id: String,
   });
   console.log('props', props);
-  const emit = defineEmits(['set-modal']);
+  const emit = defineEmits(['set-modal', 'set-refresh']);
   const activeKey = ref(['basic', 'pay', 'other']);
   const basicInfo = ref([]);
   const payInfo = ref([]);
@@ -55,6 +60,8 @@
     payNumber: '202210281400010',
     totalMoney: '55',
   });
+  const [registerPayModal, { openModal: openPayModal }] = useModal();
+  const [registerOnlinePayModal, { openModal: openOnlinePayModal }] = useModal();
   const [
     registerBasicInfo,
     { validate: validateBasicInfo, getFieldsValue: getFieldsValue_basicInfo },
@@ -96,7 +103,10 @@
   //   // 1、更新表格数据
   //   // 2、交费表格中收费项目应收多选框可以点击
   // };
-  const submit = () => {
+  const cancel = () => {
+    emit('set-modal', { visible: false });
+  };
+  const save = () => {
     const result = getFieldsValue_basicInfo();
     const result1 = getFieldsValue_payInfo();
     const result2 = getFieldsValue_otherInfo();
@@ -116,6 +126,40 @@
       console.log('res', res);
     });
     // emit('set-modal', { visible: false });
+  };
+  const handleOpt = (type: string) => {
+    if (type === 'pay') {
+      // 先走保存接口，保存成功调起支付弹框
+      // 刷卡
+      // openPayModal(true, {
+      //   // 需要的相关信息
+      //   type,
+      //   title: '缴费',
+      //   id: 1,
+      //   money: '10',
+      //   name: '章三',
+      //   card: '123456789',
+      // });
+      // 在线支付
+      openOnlinePayModal(true, {
+        title: '在线支付',
+        money: '123',
+        id: 2,
+      });
+    } else if (type === 'freeze') {
+      openPayModal(true, {
+        // 需要的相关信息
+        type,
+        title: '冻结',
+        id: 1,
+        money: '10',
+        name: '章三',
+        card: '123456789',
+      });
+    }
+  };
+  const callbackPay = () => {
+    emit('set-refresh', true);
   };
   onMounted(async () => {
     try {

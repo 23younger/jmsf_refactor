@@ -1,7 +1,7 @@
 import { FormSchema } from '/@/components/Form';
 import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
-import { handleParkCard, handlePressEnter, viewImgs, calculate } from '../common';
+import { handleParkCard, handlePressEnter, viewImgs, calculate, readPassword } from '../common';
 import { Input, Button } from 'ant-design-vue';
 import utils from '/@/utils/public';
 import payTable from '../components/payTable.vue';
@@ -945,5 +945,59 @@ export const schemas_otherInfo: FormSchema[] = [
     },
     label: '退款时间',
     colProps,
+  },
+];
+
+export const schemas_payModal: FormSchema[] = [
+  {
+    field: 'money',
+    component: 'Input',
+    componentProps: {
+      disabled: true,
+      suffix: '元',
+      class: 'money-class',
+    },
+    label: '支付金额',
+  },
+  {
+    field: 'name',
+    component: 'Input',
+    componentProps: {
+      disabled: true,
+    },
+    label: '客户名称',
+  },
+  {
+    field: 'card',
+    component: 'Input',
+    componentProps: {
+      disabled: true,
+    },
+    label: '客户园区卡',
+  },
+  {
+    field: 'password',
+    component: 'InputPassword',
+    componentProps: ({ formModel }) => {
+      return {
+        visibilityToggle: false,
+        addonAfter: () =>
+          h(
+            'span',
+            {
+              style: {
+                color: 'blue',
+                cursor: 'pointer',
+                marginRight: '5px',
+              },
+              onclick: () => {
+                readPassword(formModel);
+              },
+            },
+            '输入密码',
+          ),
+      };
+    },
+    label: '密码',
   },
 ];

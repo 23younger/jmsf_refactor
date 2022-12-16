@@ -203,8 +203,8 @@
       };
 
       // 详情页表单callback，可用于判断是否刷新列表
-      const callback = (type) => {
-        console.log('type', type);
+      const callback = (refresh: boolean) => {
+        console.log('type', refresh);
       };
 
       onMounted(() => {

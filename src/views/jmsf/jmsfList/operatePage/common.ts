@@ -65,6 +65,9 @@ export const viewImgs = (imgs: string[]) => {
   console.log('imgs', imgs);
 };
 
+/**
+ * 自定义collapse图标
+ */
 export const cusExpandIcon = (props) => {
   if (props.isActive) {
     return h(
@@ -93,4 +96,18 @@ export const cusExpandIcon = (props) => {
  */
 export const calculate = (model) => {
   console.log('model', model);
+};
+
+/**
+ * 读取输入密码
+ */
+export const readPassword = (model) => {
+  model['password'] = '';
+  if (typeof callbackObj == 'undefined') return;
+  const pwd = JSON.parse(callbackObj.readPasswordKeyboard());
+  if (pwd.code != '0') {
+    createErrorModal({ title: '提示', content: pwd.message });
+  } else {
+    model['password'] = pwd.data;
+  }
 };

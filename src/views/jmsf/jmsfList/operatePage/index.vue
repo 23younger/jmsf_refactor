@@ -3,25 +3,61 @@
     :title="modalInfo.title"
     v-bind="$attrs"
     defaultFullscreen
+    :can-fullscreen="false"
     @register="register"
     @visible-change="handleChange"
     :show-cancel-btn="false"
     :show-ok-btn="false"
     :footer="null"
   >
-    <Update v-if="modalInfo.type === 'update'" @set-modal="setModalProps" :id="modalInfo.id" />
     <Preview v-if="modalInfo.type === 'preview'" @set-modal="setModalProps" :id="modalInfo.id" />
-    <Pay v-if="modalInfo.type === 'pay'" @set-modal="setModalProps" :id="modalInfo.id" />
-    <Unfreeze v-if="modalInfo.type === 'unfreeze'" @set-modal="setModalProps" :id="modalInfo.id" />
-    <Correct v-if="modalInfo.type === 'correct'" @set-modal="setModalProps" :id="modalInfo.id" />
-    <Amend v-if="modalInfo.type === 'amend'" @set-modal="setModalProps" :id="modalInfo.id" />
-    <Invalid v-if="modalInfo.type === 'invalid'" @set-modal="setModalProps" :id="modalInfo.id" />
-    <Refund v-if="modalInfo.type === 'refund'" @set-modal="setModalProps" :id="modalInfo.id" />
+    <Update
+      v-if="modalInfo.type === 'update'"
+      @set-modal="setModalProps"
+      @set-refresh="updateShouldRefreshList"
+      :id="modalInfo.id"
+    />
+    <Pay
+      v-if="modalInfo.type === 'pay'"
+      @set-modal="setModalProps"
+      @set-refresh="updateShouldRefreshList"
+      :id="modalInfo.id"
+    />
+    <Unfreeze
+      v-if="modalInfo.type === 'unfreeze'"
+      @set-modal="setModalProps"
+      @set-refresh="updateShouldRefreshList"
+      :id="modalInfo.id"
+    />
+    <Correct
+      v-if="modalInfo.type === 'correct'"
+      @set-modal="setModalProps"
+      @set-refresh="updateShouldRefreshList"
+      :id="modalInfo.id"
+    />
+    <Amend
+      v-if="modalInfo.type === 'amend'"
+      @set-modal="setModalProps"
+      @set-refresh="updateShouldRefreshList"
+      :id="modalInfo.id"
+    />
+    <Invalid
+      v-if="modalInfo.type === 'invalid'"
+      @set-modal="setModalProps"
+      @set-refresh="updateShouldRefreshList"
+      :id="modalInfo.id"
+    />
+    <Refund
+      v-if="modalInfo.type === 'refund'"
+      @set-modal="setModalProps"
+      @set-refresh="updateShouldRefreshList"
+      :id="modalInfo.id"
+    />
   </BasicModal>
 </template>
 
 <script lang="ts" setup>
-  import { ref, toRaw, defineEmits } from 'vue';
+  import { ref, toRaw, defineEmits, unref } from 'vue';
   import Preview from './preview/index.vue';
   import Update from './update/index.vue';
   import Pay from './pay/index.vue';
@@ -42,9 +78,13 @@
     title: '',
     id: '',
   });
+  const shouldRefreshList = ref<boolean>(false);
   const updateModalInfo = (data) => {
     console.log('updateModalInfo-data', toRaw(data));
     modalInfo.value = toRaw(data);
+  };
+  const updateShouldRefreshList = (bool: boolean) => {
+    shouldRefreshList.value = bool;
   };
   const [register, { setModalProps }] = useModalInner(updateModalInfo);
   const handleChange = async (visible: boolean) => {
@@ -52,7 +92,7 @@
       console.log('data', modalInfo.value);
     } else {
       // ty_todo 用于返回列表后判断是否需要更新列表
-      emit('callback', modalInfo.value.type);
+      emit('callback', toRaw(unref(shouldRefreshList)));
       modalInfo.value = {
         type: '',
         title: '',
