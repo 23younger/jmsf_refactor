@@ -30,7 +30,7 @@ const transform: AxiosTransform = {
    */
   transformRequestHook: (res: AxiosResponse<Result>, options: RequestOptions) => {
     const { t } = useI18n();
-    const { isTransformResponse, isReturnNativeResponse } = options;
+    const { isTransformResponse, isReturnNativeResponse, isJmsf } = options;
     // 是否返回原生响应头 比如：需要获取响应头时使用该属性
     if (isReturnNativeResponse) {
       return res;
@@ -47,10 +47,17 @@ const transform: AxiosTransform = {
       // return '[HTTP] Request has no return value';
       throw new Error(t('sys.api.apiRequestFailed'));
     }
+
     //  这里 code，result，message为 后台统一的字段，需要在 types.ts内修改为项目自己的接口返回格式
-    const { code, result, message } = data;
+    const { code, result, data: dataJmsf, message } = data;
 
     // 这里逻辑可以根据项目进行修改
+    if (isJmsf) {
+      const hasSuccess = data && Reflect.has(data, 'code') && code === 200;
+      if (hasSuccess) {
+        return dataJmsf;
+      }
+    }
     const hasSuccess = data && Reflect.has(data, 'code') && code === ResultEnum.SUCCESS;
     if (hasSuccess) {
       return result;
@@ -233,6 +240,8 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
           ignoreCancelToken: true,
           // 是否携带token
           withToken: true,
+          // 是否进门收费接口
+          isJmsf: false,
         },
       },
       opt || {},
@@ -244,6 +253,7 @@ export const defHttp = createAxios();
 export const jmsfHttp = createAxios({
   requestOptions: {
     apiUrl: 'https://www.fastmock.site/mock/ca8e96f4d24c8afa044117ee5ccc5ba0/dili',
+    isJmsf: true,
   },
 });
 

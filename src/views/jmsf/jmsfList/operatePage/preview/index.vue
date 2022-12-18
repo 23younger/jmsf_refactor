@@ -79,11 +79,11 @@
   onMounted(async () => {
     try {
       emit('set-modal', { loading: true });
-      const config = await getConfig();
+      const config = await getConfig('preview');
       if (config && config.length) {
-        const config_basic = config.filter((v) => v.group === 'basic');
-        const config_pay = config.filter((v) => v.group === 'pay');
-        const config_other = config.filter((v) => v.group === 'other');
+        const config_basic = config.filter((v) => v.groupType === 1);
+        const config_pay = config.filter((v) => v.groupType === 2);
+        const config_other = config.filter((v) => v.groupType === 3);
         const schemas_basic = config_basic.map((v) => {
           const schemas_item = schemas_basicInfo.find(($v) => $v.field === v.code);
           if (schemas_item && !isFunction(schemas_item.required)) {

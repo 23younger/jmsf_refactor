@@ -1,6 +1,6 @@
 // import { h } from 'vue';
 import { dateUtil } from '/@/utils/dateUtil';
-import { findJmsfCarType } from '/@/api/jmsf/jmsfList/index';
+import { findJmsfCarType, findProduct } from '/@/api/jmsf/jmsfList/index';
 import type { BasicColumn, FormSchema } from '/@/components/Table';
 
 interface btnList {
@@ -38,6 +38,13 @@ export const basicFormData: FormSchema[] = [
     field: 'goods',
     label: '商品',
     component: 'ApiAutoComplete',
+    componentProps: {
+      api: findProduct,
+      valueField: 'id',
+      valueFormat: 'name',
+      searchKey: 'keyword',
+      errTxt: '该品类名称不存在，请重新输入',
+    },
   },
   {
     field: 'pay',

@@ -23,6 +23,8 @@ export interface RequestOptions {
   ignoreCancelToken?: boolean;
   // Whether to send token in header
   withToken?: boolean;
+  // isJmsf
+  isJmsf?: boolean;
 }
 
 export interface Result<T = any> {
@@ -30,6 +32,7 @@ export interface Result<T = any> {
   type: 'success' | 'error' | 'warning';
   message: string;
   result: T;
+  data?: any;
 }
 
 // multipart/form-data: upload file

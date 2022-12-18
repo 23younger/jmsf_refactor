@@ -15,7 +15,7 @@ enum Api {
   findByUserName = '/api/base/findByUserName', // 接车员：通过姓名查询员工信息(接车员)
   findJmsfCarType = '/api/base/findJmsfCarType', // 车型：通过关键字获取车型（默认全部）
   findCardCustomer = '/api/base/findCardCustomer', // 客户卡号：查询卡与客户信息(姓名，卡号，身份证)
-  findProduct = '/api/base/findProduct', // 通过名字关键字查询商品与品类信息
+  findProduct = '/api/base/web/findProduct', // 通过名字关键字查询商品与品类信息
   findDistrictByDepId = '/api/base/findDistrictByDepId', // 通过部门ID获取关联区域
   listProves = '/api/base/web/listProves', // 证明类型：获取市场的证明类型
   listGoodsTags = '/api/base/web/listGoodsTags', // 货物标签：获取市场的货物标签
@@ -40,6 +40,7 @@ export const saveOrUpdateDetailConf = (params) =>
     params,
   });
 
+// --------------------- 列表页 -------------------------
 export const findDep = (params) =>
   jmsfHttp.get({
     url: Api.findDep,
@@ -102,6 +103,18 @@ export const listGoodsTags = () =>
     },
   });
 
-export const getConfig = () => jmsfHttp.get({ url: Api.GetConfig });
+// ----------------------- 收费单详情 --------------------------
+/**
+ * 获取收费单配置
+ */
+export const getConfig = (functionType) =>
+  jmsfHttp.get({
+    url: Api.GetConfig,
+    params: {
+      marketId: 1,
+      functionType,
+    },
+  });
+
 export const getFormData = () => jmsfHttp.get({ url: Api.GetFormData });
 export const getForm = () => jmsfHttp.get({ url: Api.GetForm });
