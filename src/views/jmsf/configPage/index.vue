@@ -1,5 +1,5 @@
 <template>
-  <Spin :spinning="loading">
+  <Spin :spinning="loading" :tip="spinTip">
     <a-layout>
       <a-layout-sider
         theme="light"
@@ -55,11 +55,11 @@
                     <tr class="drag-tr" :class="element.moveDisabled && 'undraggable'">
                       <td>{{ index + 1 }}</td>
                       <td>{{ element.name }}</td>
-                      <td>
+                      <td v-show="!element.fixed">
                         <Checkbox
-                          :checked="element.isShow"
+                          :checked="Boolean(element.required)"
                           @click="changeChecked(element)"
-                          :disabled="element.isRequired"
+                          :disabled="element.fixed"
                         />
                       </td>
                     </tr>
@@ -87,11 +87,11 @@
                     <tr class="drag-tr undraggable">
                       <td>{{ index + 1 }}</td>
                       <td>{{ element.name }}</td>
-                      <td>
+                      <td v-show="!element.fixed">
                         <Checkbox
-                          :checked="element.isShow"
+                          :checked="Boolean(element.required)"
                           @click="changeChecked(element)"
-                          :disabled="element.isRequired"
+                          :disabled="element.fixed"
                         />
                       </td>
                     </tr>
@@ -119,11 +119,11 @@
                     <tr class="drag-tr">
                       <td>{{ index + 1 }}</td>
                       <td>{{ element.name }}</td>
-                      <td>
+                      <td v-show="!element.fixed">
                         <Checkbox
-                          :checked="element.isShow"
+                          :checked="Boolean(element.required)"
                           @click="changeChecked(element)"
-                          :disabled="element.isRequired"
+                          :disabled="element.fixed"
                         />
                       </td>
                     </tr>
@@ -142,12 +142,13 @@
 </template>
 
 <script setup lang="ts">
-  import { getConfigList } from '/@/api/jmsf/jmsfList';
+  import { getConfigList, saveOrUpdateDetailConf } from '/@/api/jmsf/jmsfList';
   import { computed, onMounted, ref, unref, toRaw } from 'vue';
   import draggable from 'vuedraggable';
   import { Checkbox, Spin, Menu, MenuItem, Collapse, CollapsePanel } from 'ant-design-vue';
   import { SendOutlined } from '@ant-design/icons-vue';
   import { cusExpandIcon } from '../jmsfList/operatePage/common';
+  const spinTip = ref<string>('正在加载...');
   const loading = ref<boolean>(false);
   const operateType = ref<string>('preview');
   const configList = ref([
@@ -169,11 +170,12 @@
   onMounted(async () => {
     try {
       loading.value = true;
-      const config = await getConfigList();
+      const functionType = toRaw(unref(selectedKeys))[0];
+      const config = await getConfigList(functionType);
       if (config && config.length) {
-        basicInfo.value = config.filter((v) => v.group === 'basic');
-        payInfo.value = config.filter((v) => v.group === 'pay');
-        otherInfo.value = config.filter((v) => v.group === 'other');
+        basicInfo.value = config.filter((v) => v.groupType === 1);
+        payInfo.value = config.filter((v) => v.groupType === 2);
+        otherInfo.value = config.filter((v) => v.groupType === 3);
       }
       loading.value = false;
     } catch (error) {
@@ -196,7 +198,7 @@
     };
   });
   const changeChecked = (item) => {
-    item.isShow = !item.isShow;
+    item.required = !item.required;
   };
   const handleSelect = async (e) => {
     operateType.value = e.key;
@@ -205,21 +207,40 @@
       basicInfo.value = [];
       payInfo.value = [];
       otherInfo.value = [];
-      const config = await getConfigList();
+      const functionType = toRaw(unref(selectedKeys))[0];
+      const config = await getConfigList(functionType);
       if (config && config.length) {
-        basicInfo.value = config.filter((v) => v.group === 'basic');
-        payInfo.value = config.filter((v) => v.group === 'pay');
-        otherInfo.value = config.filter((v) => v.group === 'other');
+        basicInfo.value = config.filter((v) => v.groupType === 1);
+        payInfo.value = config.filter((v) => v.groupType === 2);
+        otherInfo.value = config.filter((v) => v.groupType === 3);
       }
       loading.value = false;
     } catch (error) {
       loading.value = false;
     }
   };
-  const submit = () => {
+  const submit = async () => {
     console.log('basic', toRaw(unref(basicInfo)));
     console.log('pay', toRaw(unref(payInfo)));
     console.log('other', toRaw(unref(otherInfo)));
+    try {
+      loading.value = true;
+      spinTip.value = '正在提交...';
+      const basic = toRaw(unref(basicInfo));
+      const pay = toRaw(unref(payInfo));
+      const other = toRaw(unref(otherInfo));
+      const params = [...basic, ...pay, ...other];
+      params.map((v: any) => {
+        v.required = v.required ? 1 : -1;
+      });
+      console.log('params', params);
+      await saveOrUpdateDetailConf(params);
+      spinTip.value = '正在加载...';
+      loading.value = true;
+    } catch (error) {
+      loading.value = false;
+      spinTip.value = '正在加载...';
+    }
   };
 </script>
 

@@ -6,6 +6,8 @@ import { jmsfHttp } from '/@/utils/http/axios';
 
 enum Api {
   GetConfigList = '/api/web/conf/getDetailConfs',
+  SaveOrUpdateDetailConf = '/api/web/conf/saveOrUpdateDetailConf',
+
   GetConfig = '/api/web/conf/getDetailConfs',
   GetFormData = '/api/web/detail/getDetailForm',
   GetForm = '/testpage/getForm',
@@ -18,6 +20,25 @@ enum Api {
   listProves = '/api/base/web/listProves', // 证明类型：获取市场的证明类型
   listGoodsTags = '/api/base/web/listGoodsTags', // 货物标签：获取市场的货物标签
 }
+
+// ---------------------- 详情配置页 -------------------------
+/**
+ * 通过市场id获取详情页配置
+ */
+export const getConfigList = (functionType: string) =>
+  jmsfHttp.get({
+    url: Api.GetConfigList,
+    params: {
+      marketId: 1,
+      functionType,
+    },
+  });
+
+export const saveOrUpdateDetailConf = (params) =>
+  jmsfHttp.get({
+    url: Api.SaveOrUpdateDetailConf,
+    params,
+  });
 
 export const findDep = (params) =>
   jmsfHttp.get({
@@ -81,7 +102,6 @@ export const listGoodsTags = () =>
     },
   });
 
-export const getConfigList = () => jmsfHttp.get({ url: Api.GetConfigList });
 export const getConfig = () => jmsfHttp.get({ url: Api.GetConfig });
 export const getFormData = () => jmsfHttp.get({ url: Api.GetFormData });
 export const getForm = () => jmsfHttp.get({ url: Api.GetForm });
