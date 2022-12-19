@@ -1,6 +1,15 @@
 // import { h } from 'vue';
 import { dateUtil } from '/@/utils/dateUtil';
-import { findJmsfCarType, findProduct } from '/@/api/jmsf/jmsfList/index';
+import {
+  findDep,
+  findDistrictByDepId,
+  findJmsfCarType,
+  findProduct,
+  findWeighType,
+  getStatus,
+  getTradeType,
+  listGoodsTags,
+} from '/@/api/jmsf/jmsfList/index';
 import type { BasicColumn, FormSchema } from '/@/components/Table';
 
 interface btnList {
@@ -11,7 +20,7 @@ interface btnList {
   code?: string; // 按钮权限码
 }
 
-const start = dateUtil(new Date())
+export const start = dateUtil(new Date())
   .set({
     date: dateUtil(new Date()).get('date') - 1,
     hour: 0,
@@ -19,11 +28,12 @@ const start = dateUtil(new Date())
     second: 0,
   })
   .format('YYYY-MM-DD HH:mm:ss');
-const end = dateUtil(new Date())
+export const end = dateUtil(new Date())
   .set({ hour: 23, minute: 59, second: 59 })
   .format('YYYY-MM-DD HH:mm:ss');
-// 搜索基础字段
-export const basicFormData: FormSchema[] = [
+
+// 用于配置页面预览效果
+export const configFormSchema: FormSchema[] = [
   {
     field: 'likePlate',
     label: '车号',
@@ -35,29 +45,17 @@ export const basicFormData: FormSchema[] = [
     component: 'Input',
   },
   {
-    field: 'goods',
+    field: 'productId',
     label: '商品',
     component: 'ApiAutoComplete',
-    componentProps: {
-      api: findProduct,
-      valueField: 'id',
-      valueFormat: 'name',
-      searchKey: 'keyword',
-      errTxt: '该品类名称不存在，请重新输入',
-    },
   },
   {
-    field: 'pay',
+    field: 'cashierName',
     label: '收费员',
     component: 'Input',
   },
   {
-    field: 'shipperName',
-    label: '货主姓名',
-    component: 'Input',
-  },
-  {
-    field: 'cname',
+    field: 'customerName',
     label: '客户姓名',
     component: 'Input',
   },
@@ -67,14 +65,15 @@ export const basicFormData: FormSchema[] = [
     component: 'Input',
   },
   {
-    field: 'phone',
-    label: '手机号码',
+    field: 'customerPhone',
+    label: '客户手机',
     component: 'Input',
   },
   {
-    field: 'tagIds',
+    field: 'tagId',
     label: '货物标签',
-    component: 'Input',
+    component: 'ApiSelect',
+    defaultValue: '--全部--',
   },
   {
     field: 'carTypeId',
@@ -89,27 +88,7 @@ export const basicFormData: FormSchema[] = [
     defaultValue: '--全部--',
   },
   {
-    field: 'productName',
-    label: '商品名',
-    component: 'ApiAutoComplete',
-  },
-  {
-    field: 'passCheckTypeId',
-    label: '通行证',
-    component: 'Input',
-  },
-  {
-    field: 'feeDepId',
-    label: '收费部门',
-    component: 'Input',
-  },
-  {
-    field: 'tradeTypeId',
-    label: '进厅状态',
-    component: 'Input',
-  },
-  {
-    field: 'dep',
+    field: 'depId',
     label: '接车部门',
     component: 'ApiSelect',
     defaultValue: '--全部--',
@@ -118,9 +97,10 @@ export const basicFormData: FormSchema[] = [
     field: 'regionId',
     label: '货物区域',
     component: 'Select',
+    defaultValue: '--全部--',
   },
   {
-    field: 'type',
+    field: 'weighType',
     label: '称重类型',
     component: 'ApiSelect',
     defaultValue: '--全部--',
@@ -132,20 +112,15 @@ export const basicFormData: FormSchema[] = [
     defaultValue: '--全部--',
   },
   {
-    field: 'tareOperatorName',
+    field: 'tareOperatorId',
     label: '皮重员',
     component: 'ApiAutoComplete',
   },
   {
-    field: 'accessState',
+    field: 'tradeTypeId',
     label: '交易类型',
     component: 'ApiSelect',
     defaultValue: '--全部--',
-  },
-  {
-    field: 'overNow',
-    label: '回皮超期',
-    component: 'Input',
   },
   {
     field: 'enterTime',
@@ -159,12 +134,221 @@ export const basicFormData: FormSchema[] = [
     label: '交费时间',
     component: 'NewRangePicker',
     colProps: { span: 8 },
+    defaultValue: [],
   },
   {
     field: 'refundTime',
     label: '退款时间',
     component: 'NewRangePicker',
     colProps: { span: 8 },
+    defaultValue: [],
+  },
+];
+// 列表页搜索条件
+export const basicFormSchema: FormSchema[] = [
+  {
+    field: 'likePlate',
+    label: '车号',
+    component: 'Input',
+  },
+  {
+    field: 'number',
+    label: '收费单号',
+    component: 'Input',
+  },
+  {
+    field: 'productId',
+    label: '商品',
+    component: 'ApiAutoComplete',
+    componentProps: {
+      api: findProduct,
+      valueField: 'id',
+      valueFormat: 'name',
+      searchKey: 'keyword',
+      errTxt: '该品类名称不存在，请重新输入',
+    },
+  },
+  {
+    field: 'cashierName',
+    label: '收费员',
+    component: 'Input',
+  },
+  // {
+  //   field: 'shipperName',
+  //   label: '货主姓名',
+  //   component: 'Input',
+  // },
+  {
+    field: 'customerName',
+    label: '客户姓名',
+    component: 'Input',
+  },
+  {
+    field: 'ic',
+    label: '客户卡号',
+    component: 'Input',
+  },
+  {
+    field: 'customerPhone',
+    label: '客户手机',
+    component: 'Input',
+  },
+  {
+    field: 'tagId',
+    label: '货物标签',
+    component: 'ApiSelect',
+    componentProps: {
+      api: listGoodsTags,
+      labelField: 'name',
+      valueField: 'id',
+    },
+    defaultValue: '',
+  },
+  {
+    field: 'carTypeId',
+    label: '车型',
+    component: 'ApiSelect',
+    componentProps: {
+      api: findJmsfCarType,
+      labelField: 'carTypeName',
+      valueField: 'id',
+    },
+    defaultValue: '',
+  },
+  // ty_todo 接口未给
+  {
+    field: 'categoryId',
+    label: '货物品类',
+    component: 'ApiSelect',
+    defaultValue: '--全部--',
+  },
+  // {
+  //   field: 'productName',
+  //   label: '商品名',
+  //   component: 'ApiAutoComplete',
+  // },
+  // {
+  //   field: 'passCheckTypeId',
+  //   label: '通行证',
+  //   component: 'Input',
+  // },
+  // {
+  //   field: 'feeDepId',
+  //   label: '收费部门',
+  //   component: 'Input',
+  // },
+  // {
+  //   field: 'tradeTypeId',
+  //   label: '进厅状态',
+  //   component: 'Input',
+  // },
+  {
+    field: 'depId',
+    label: '接车部门',
+    component: 'ApiSelect',
+    componentProps: ({ formModel, formActionType }) => {
+      return {
+        api: findDep,
+        labelField: 'depName',
+        valueField: 'id',
+        onChange: async (val) => {
+          const res = await findDistrictByDepId({ depId: val });
+          const data = res.map((v) => {
+            return {
+              label: v.name,
+              value: v.id,
+              key: v.id,
+            };
+          });
+          formModel['regionId'] = '';
+          const { updateSchema } = formActionType;
+          updateSchema({
+            field: 'regionId',
+            componentProps: {
+              options: [{ label: '--全部--', value: '', key: 0 }].concat(data),
+            },
+          });
+        },
+      };
+    },
+    defaultValue: '',
+  },
+  {
+    field: 'regionId',
+    label: '货物区域',
+    component: 'Select',
+  },
+  {
+    field: 'weighType',
+    label: '称重类型',
+    component: 'ApiSelect',
+    componentProps: {
+      api: findWeighType,
+      labelField: 'name',
+      valueField: 'id',
+    },
+    defaultValue: '',
+  },
+  {
+    field: 'status',
+    label: '状态',
+    component: 'ApiSelect',
+    componentProps: {
+      api: getStatus,
+      labelField: 'name',
+      valueField: 'id',
+    },
+    defaultValue: '',
+  },
+  // ty_todo 待给皮重员查询接口
+  {
+    field: 'tareOperatorId',
+    label: '皮重员',
+    component: 'ApiAutoComplete',
+    componentProps: {
+      api: findProduct,
+      valueField: 'id',
+      valueFormat: 'name',
+      searchKey: 'keyword',
+      errTxt: '该皮重员不存在，请重新输入',
+    },
+  },
+  {
+    field: 'tradeTypeId',
+    label: '交易类型',
+    component: 'ApiSelect',
+    componentProps: {
+      api: getTradeType,
+      labelField: 'name',
+      valueField: 'id',
+    },
+    defaultValue: '',
+  },
+  // {
+  //   field: 'overNow',
+  //   label: '回皮超期',
+  //   component: 'Input',
+  // },
+  {
+    field: 'enterTime',
+    label: '进场时间',
+    component: 'NewRangePicker',
+    colProps: { span: 8 },
+    defaultValue: [start, end],
+  },
+  {
+    field: 'payTime',
+    label: '交费时间',
+    component: 'NewRangePicker',
+    colProps: { span: 8 },
+    defaultValue: [],
+  },
+  {
+    field: 'refundTime',
+    label: '退款时间',
+    component: 'NewRangePicker',
+    colProps: { span: 8 },
+    defaultValue: [],
   },
 ];
 // 权限按钮
@@ -416,25 +600,26 @@ export const basicColumnsData: BasicColumn[] = [
     sorter: true,
   },
 ];
-// 搜索字段配置项
-export const basicFormProps = {
-  carTypeId: {
-    api: findJmsfCarType,
-    resultField: 'list',
-    labelField: 'name',
-    valueField: 'id',
+// test表格字段变化
+export const testColumns: BasicColumn[] = [
+  {
+    dataIndex: 'created',
+    title: '进场时间',
+    sorter: true,
   },
-  dep: {
-    api: Promise.resolve([]),
-    resultField: 'list',
-    labelField: 'name',
-    valueField: 'id',
-    onChange: (depId) => {
-      console.log(depId);
-    },
+  {
+    dataIndex: 'number',
+    title: '收费单号',
+    sorter: true,
   },
-};
-// 搜索字段
-export const formData: FormSchema[] = basicFormData.map((v) =>
-  Object.assign({}, v, basicFormProps[v.field]),
-);
+  {
+    dataIndex: 'plate',
+    title: '车号',
+    sorter: true,
+  },
+  {
+    dataIndex: 'trailerNumber',
+    title: '挂号',
+    sorter: true,
+  },
+];

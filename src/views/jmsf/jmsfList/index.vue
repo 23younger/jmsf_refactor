@@ -33,14 +33,14 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent, ref, reactive, toRefs, onMounted, unref } from 'vue';
+  import { defineComponent, ref, reactive, toRefs, onMounted, unref, nextTick } from 'vue';
   import { cloneDeep } from 'lodash-es';
   import { Icon } from '/@/components/Icon';
   import { useModal } from '/@/components/Modal';
   import { useMessage } from '/@/hooks/web/useMessage';
   import { PageWrapper } from '/@/components/Page';
   import { BasicTable, useTable } from '/@/components/Table';
-  import { basicBtnList, basicColumnsData, formData } from './data';
+  import { basicBtnList, basicColumnsData, basicFormSchema, testColumns, start, end } from './data';
   import FormConfigDialog from './Modal/formConfigDialog.vue';
   import EpidemicRreportDialog from './Modal/epidemicRreport.vue';
   import OperateModal from '../jmsfList/operatePage/index.vue';
@@ -61,7 +61,7 @@
       });
       const selectedRow = ref(null);
       const { createInfoModal } = useMessage();
-      const [registerTable, { clearSelectedRowKeys }] = useTable({
+      const [registerTable, { clearSelectedRowKeys, getForm, reload, setColumns }] = useTable({
         api: () =>
           new Promise((resolve) => {
             setTimeout(() => {
@@ -72,7 +72,7 @@
         useSearchForm: true,
         formConfig: {
           labelWidth: '6em',
-          schemas: formData,
+          schemas: basicFormSchema,
           baseColProps: { span: 4 },
           autoAdvancedLine: 10,
           fieldMapToTime: [
@@ -80,8 +80,26 @@
             ['payTime', ['startPayTime', 'endPayTime'], 'YYYY-MM-DD HH:mm:ss'],
             ['refundTime', ['startRefundTime', 'endRefundTime'], 'YYYY-MM-DD HH:mm:ss'],
           ],
+          submitOnReset: false,
           resetFunc: async () => {
             await clearSelectedRowKeys();
+            nextTick(() => {
+              const { setFieldsValue } = getForm();
+              setFieldsValue({
+                enterTime: [start, end],
+                payTime: [],
+                refundTime: [],
+              });
+              reload({
+                searchInfo: {
+                  startPayTime: '',
+                  endPayTime: '',
+                  startRefundTime: '',
+                  endRefundTime: '',
+                  // ty_todo...余下的初始值，需要显示
+                },
+              });
+            });
           },
         },
         rowSelection: { type: 'radio' },
@@ -89,6 +107,7 @@
         showIndexColumn: false,
         bordered: true,
         beforeFetch: async (data) => {
+          console.log('beforeFetch', data);
           const formInfo = cloneDeep(data);
           console.log(formInfo);
           // 可能会处理部分传参
@@ -98,6 +117,8 @@
       // 表格项设置
       const columnsChange = (val) => {
         console.log(val);
+        // ty_todo 保存表格项设置，走接口存下, 优化后的代码在jmsf分支
+        setColumns(testColumns);
       };
       // 选择表格项
       const selectionRow = ({ rows: [row] }) => {

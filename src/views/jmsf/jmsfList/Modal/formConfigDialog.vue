@@ -20,7 +20,7 @@
         <CheckboxGroup v-model:value="checkList" @change="checkChange" ref="checkBoxRef">
           <div
             class="flex items-center justify-center check-item check-wrap"
-            v-for="item in basicFormData"
+            v-for="item in configFormSchema"
             :key="item.field"
           >
             <div class="check-sort drag">
@@ -52,7 +52,7 @@
   import Sortablejs from 'sortablejs';
   import type Sortable from 'sortablejs';
   import type { FormSchema } from '/@/components/Table';
-  import { basicFormData } from '../data';
+  import { configFormSchema } from '../data';
 
   interface stateType {
     checkBoxRef: ComponentRef;
@@ -72,16 +72,16 @@
     setup() {
       const state = reactive<stateType>({
         checkBoxRef: null,
-        checkList: basicFormData.map((v) => v.field),
+        checkList: configFormSchema.map((v) => v.field),
       });
       const privateData: privateDataType = {
         isInited: false,
-        baseData: basicFormData,
-        oldList: basicFormData.map((v) => v.field),
+        baseData: configFormSchema,
+        oldList: configFormSchema.map((v) => v.field),
       };
       const [registerModal, { closeModal }] = useModalInner();
       const [registerForm, { resetSchema }] = useForm({
-        schemas: basicFormData,
+        schemas: configFormSchema,
         labelWidth: '5em',
         baseColProps: { span: 4 },
         showActionButtonGroup: false,
@@ -147,7 +147,7 @@
 
       return {
         ...toRefs(state),
-        basicFormData,
+        configFormSchema,
         registerModal,
         registerForm,
         checkChange,
