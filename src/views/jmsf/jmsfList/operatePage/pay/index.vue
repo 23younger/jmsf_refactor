@@ -164,30 +164,13 @@
   onMounted(async () => {
     try {
       emit('set-modal', { loading: true });
-      const config = await getConfig();
+      const config = await getConfig('pay');
       basicInfo.value = config.basicInfo;
       payInfo.value = config.payInfo;
       otherInfo.value = config.otherInfo;
       formModel.value = {
         enFee_payType: '2',
-        enFee_depName: '1',
-        region_Info: {
-          firstFetch: true,
-          id: null,
-          number: '',
-          options: [
-            {
-              name: '货区1',
-              number: '1234',
-              id: 1,
-            },
-            {
-              name: '货区2',
-              number: '5678',
-              id: 2,
-            },
-          ],
-        },
+        enFee_depName: '105',
         enFee_created: '2022-11-04 14:11:23',
         enFee_backSkinTwo: '0',
         // toll_sum: '12345',

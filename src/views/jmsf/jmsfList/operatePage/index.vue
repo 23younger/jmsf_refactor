@@ -67,10 +67,10 @@
   import Invalid from './invalid/index.vue';
   import Refund from './refund/index.vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
-  import InputLinkSelect from '../../components/InputLinkSelect.vue';
+  import areaInfoComp from '../../components/areaInfoComp.vue';
   import { useComponentRegister } from '/@/components/Form';
 
-  useComponentRegister('InputLinkSelect', InputLinkSelect);
+  useComponentRegister('areaInfoComp', areaInfoComp);
 
   const emit = defineEmits(['register', 'callback']);
   const modalInfo = ref({

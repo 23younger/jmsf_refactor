@@ -15,70 +15,40 @@
       </CollapsePanel>
       <CollapsePanel key="pay" header="费用信息">
         <BasicForm @register="registerPayInfo" />
-        <div class="table-info-wrapper">
-          <table class="ant-table ant-table-bordered">
-            <thead class="ant-table-thead">
-              <tr class="ant-table-row">
-                <th scope="col">收费项目应收</th>
-                <th scope="col">收费项目优惠1</th>
-                <th scope="col">收费项目优惠2</th>
-                <th scope="col">收费项目实收</th>
-              </tr>
-            </thead>
-            <tbody class="ant-table-tbody">
-              <tr class="ant-table-row">
-                <td style="text-align: left; padding: 8px 4px">
-                  <Checkbox :disabled="true" />
-                  <span style="margin: 0 6px">进门收费:</span>
-                  <Input style="width: auto" :disabled="true" />
-                </td>
-                <td>1</td>
-                <td>2</td>
-                <td>3</td>
-              </tr>
-              <tr class="ant-table-row">
-                <td style="text-align: left; padding: 8px 4px">
-                  <Checkbox :disabled="true" />
-                  <span style="margin: 0 6px">进门收费:</span>
-                  <Input style="width: auto" :disabled="true" />
-                </td>
-                <td>1</td>
-                <td>2</td>
-                <td>3</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </CollapsePanel>
       <CollapsePanel key="other" header="其他信息">
         <BasicForm @register="registerOtherInfo" />
       </CollapsePanel>
     </Collapse>
+    <div class="btn-grp">
+      <a-button @click="cancel">取消</a-button>
+      <a-button @click="submit" type="primary">确认</a-button>
+    </div>
   </div>
-  <a-button @click="submit">确认</a-button>
 </template>
 
 <script lang="ts" setup>
-  import { getConfig } from '/@/api/jmsf/jmsfList';
+  import { calcItems, getConfig, getFormData } from '/@/api/jmsf/jmsfList';
   import { cusExpandIcon } from '../common';
-  import { Collapse, CollapsePanel, Checkbox, Input } from 'ant-design-vue';
+  import { Collapse, CollapsePanel } from 'ant-design-vue';
   import { onMounted, onUnmounted, ref, defineEmits } from 'vue';
   import { BasicForm, useForm } from '/@/components/Form';
   import { schemas_basicInfo, schemas_payInfo, schemas_otherInfo } from './form';
+  import { isFunction } from '/@/utils/is';
   const props = defineProps({
     id: String,
   });
-  console.log('props', props);
   const emit = defineEmits(['set-modal']);
   const activeKey = ref(['basic', 'pay', 'other']);
   const loading = ref<boolean>(false);
-  const basicInfo = ref([]);
-  const payInfo = ref([]);
-  const otherInfo = ref([]);
   const formModel = ref<object>({});
   const [
     registerBasicInfo,
-    { validate: validateBasicInfo, getFieldsValue: getFieldsValue_basicInfo },
+    {
+      validate: validateBasicInfo,
+      getFieldsValue: getFieldsValue_basicInfo,
+      resetSchema: resetBasicSchema,
+    },
   ] = useForm({
     labelCol: {
       span: 8,
@@ -89,20 +59,30 @@
     schemas: schemas_basicInfo,
     showActionButtonGroup: false,
   });
-  const [registerPayInfo, { validate: validatePayInfo, getFieldsValue: getFieldsValue_payInfo }] =
-    useForm({
-      labelCol: {
-        span: 12,
-      },
-      wrapperCol: {
-        span: 12,
-      },
-      schemas: schemas_payInfo,
-      showActionButtonGroup: false,
-    });
+  const [
+    registerPayInfo,
+    {
+      validate: validatePayInfo,
+      getFieldsValue: getFieldsValue_payInfo,
+      resetSchema: resetPaySchema,
+    },
+  ] = useForm({
+    labelCol: {
+      span: 12,
+    },
+    wrapperCol: {
+      span: 12,
+    },
+    schemas: schemas_payInfo,
+    showActionButtonGroup: false,
+  });
   const [
     registerOtherInfo,
-    { validate: validateOtherInfo, getFieldsValue: getFieldsValue_otherInfo },
+    {
+      validate: validateOtherInfo,
+      getFieldsValue: getFieldsValue_otherInfo,
+      resetSchema: resetOtherSchema,
+    },
   ] = useForm({
     labelCol: {
       span: 8,
@@ -113,6 +93,22 @@
     schemas: schemas_otherInfo,
     showActionButtonGroup: false,
   });
+  const initData = async () => {
+    // 1、读取基础数据
+    const formData = await getFormData({
+      id: props.id,
+    });
+    // 2、读取费用数据
+    const calcResult = await calcItems({});
+    console.log('calcResult', calcResult);
+    // 2、处理数据
+    formModel.value = {
+      ...formData,
+    };
+  };
+  const cancel = () => {
+    emit('set-modal', { visible: false });
+  };
   const submit = () => {
     const result = getFieldsValue_basicInfo();
     const result1 = getFieldsValue_payInfo();
@@ -137,34 +133,32 @@
   onMounted(async () => {
     try {
       emit('set-modal', { loading: true });
-      const config = await getConfig();
-      basicInfo.value = config.basicInfo;
-      payInfo.value = config.payInfo;
-      otherInfo.value = config.otherInfo;
+      // 1、读取配置
+      const config = await getConfig('update');
+      if (config && config.length) {
+        const config_basic = config.filter((v) => v.groupType === 1);
+        const config_pay = config.filter((v) => v.groupType === 2);
+        const config_other = config.filter((v) => v.groupType === 3);
+        const schemas_basic = config_basic.map((v) => {
+          const schemas_item = schemas_basicInfo.find(($v) => $v.field === v.code);
+          if (schemas_item && !isFunction(schemas_item.required)) {
+            schemas_item.required = v.required;
+          }
+          return schemas_item;
+        });
+        const schemas_pay = config_pay.map((v) =>
+          schemas_payInfo.find(($v) => $v.field === v.code),
+        );
+        const schemas_other = config_other.map((v) =>
+          schemas_otherInfo.find(($v) => $v.field === v.code),
+        );
+        await resetBasicSchema(schemas_basic);
+        await resetPaySchema(schemas_pay);
+        await resetOtherSchema(schemas_other);
+
+        initData();
+      }
       loading.value = false;
-      formModel.value = {
-        enFee_payType: '2',
-        enFee_depName: '1',
-        region_Info: {
-          firstFetch: true,
-          id: null,
-          number: '',
-          options: [
-            {
-              name: '货区1',
-              number: '1234',
-              id: 1,
-            },
-            {
-              name: '货区2',
-              number: '5678',
-              id: 2,
-            },
-          ],
-        },
-        enFee_created: '2022-11-04 14:11:23',
-        enFee_backSkinTwo: '0',
-      };
       emit('set-modal', { loading: false });
     } catch (error) {
       emit('set-modal', { loading: false });
@@ -194,6 +188,13 @@
         }
       }
     }
+    .btn-grp {
+      padding: 10px 0;
+      text-align: right;
+      button {
+        margin-left: 8px;
+      }
+    }
   }
 
   ::v-deep(.ant-collapse-header) {
@@ -206,21 +207,5 @@
 
   ::v-deep(.ant-input[disabled]) {
     color: #000;
-  }
-
-  .ant-table {
-    text-align: center;
-    width: 100%;
-    border: 1px solid #f0f0f0;
-
-    .ant-table-thead tr th {
-      text-align: center;
-    }
-
-    .ant-table-thead > tr > th,
-    .ant-table-tbody > tr > td {
-      width: 25%;
-      padding: 8px 0;
-    }
   }
 </style>

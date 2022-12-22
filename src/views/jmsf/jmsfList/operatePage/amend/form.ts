@@ -400,7 +400,7 @@ export const schemas_basicInfo: FormSchema[] = [
   },
   {
     field: 'region_Info',
-    component: 'InputLinkSelect',
+    component: 'areaInfoComp',
     label: '货区区域',
     colProps,
     componentProps: {

@@ -32,7 +32,7 @@
   }
 
   export default defineComponent({
-    name: 'InputLinkSelect',
+    name: 'AreaInfoComp',
     components: {
       Row,
       Col,

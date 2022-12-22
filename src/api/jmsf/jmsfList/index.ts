@@ -5,33 +5,40 @@ import { jmsfHttp } from '/@/utils/http/axios';
 // const marketId = userStore.getUserInfo.marketId; // ty_todo 添加市场id
 
 enum Api {
+  // 表单配置页
   GetConfigList = '/api/web/conf/getDetailConfs',
   SaveOrUpdateDetailConf = '/api/web/conf/saveOrUpdateDetailConf',
 
-  GetConfig = '/api/web/conf/getDetailConfs',
-  GetFormData = '/api/web/detail/getDetailForm',
-  GetForm = '/testpage/getForm',
+  // 表单详情页
+  GetConfig = '/api/web/conf/getDetailConfs', // 获取表单配置信息
+  GetFormData = '/api/web/detail/getDetailForm', // 获取表单详情数据
+  findCardCustomer = '/api/base/findCardCustomer', // 客户卡号：查询卡与客户信息(姓名，卡号，身份证)
+  calcItems = '/calculate/calcItems', // 进门收费项目计算(未更正)
+  calcItemsDiscount = '/calculate/calcItemsDiscount', // 进门收费项目，更正操作只计算优惠返点项目
+  getPayTypes = '/api/base/getPayTypes', // 获取支付方式 ty_todo
+  getAddress = '/api/base/address3', // 货物产地：通过关键字获取包含第三级城市地址
+  findHandTeam = '/api/base/findHandTeam', // 装卸队：获取装卸队数据 ty_todo
+
+  // 检索条件配置页
+  getSearchConf = '/api/web/conf/getOneQueryConf', // 获取列表页搜索条件配置
+
+  // 进门单列表页
   findDep = '/api/base/findDep', // 通过名字与ID关键字查询部门信息
+  findDistrictByDepId = '/api/base/findDistrictByDepId', // 通过部门ID获取关联区域
   findByUserName = '/api/base/findByUserName', // 接车员：通过姓名查询员工信息(接车员)
   findJmsfCarType = '/api/base/findJmsfCarType', // 车型：通过关键字获取车型（默认全部）
-  findCardCustomer = '/api/base/findCardCustomer', // 客户卡号：查询卡与客户信息(姓名，卡号，身份证)
-  findProduct = '/api/base/findProduct', // 通过名字关键字查询商品与品类信息
-  findDistrictByDepId = '/api/base/findDistrictByDepId', // 通过部门ID获取关联区域
   listProves = '/api/base/listProves', // 证明类型：获取市场的证明类型
+  findProduct = '/api/base/findProduct', // 通过名字关键字查询商品与品类信息
   listGoodsTags = '/api/base/listGoodsTags', // 货物标签：获取市场的货物标签
   findWeighType = '/api/base/findWeighType', // 称重类型：获取市场的称重类型 ty_todo
   getStatus = '/api/base/getStatus', // 状态：进门单状态 ty_todo
   getTradeType = '/api/base/getTradeType', // 交易类型: 获取市场交易类型 ty_todo
 }
 
-enum ConfigApi {
-  getSearchConf = '/api/web/conf/getOneQueryConf', // 获取列表页搜索条件配置
-}
-
-// ---------------------- 配置页 -------------------------
 /**
- * 通过市场id获取详情页配置
+ * 表单配置页
  */
+// 通过市场id获取详情页配置
 export const getConfigList = (functionType: string) =>
   jmsfHttp.get({
     url: Api.GetConfigList,
@@ -41,9 +48,7 @@ export const getConfigList = (functionType: string) =>
     },
   });
 
-/**
- * 保存配置
- */
+// 保存配置
 export const saveOrUpdateDetailConf = (params) =>
   jmsfHttp.get({
     url: Api.SaveOrUpdateDetailConf,
@@ -51,17 +56,90 @@ export const saveOrUpdateDetailConf = (params) =>
   });
 
 /**
- * 列表搜索条件配置信息
+ * 表单详情页
  */
+// 获取收费单配置
+export const getConfig = (functionType) =>
+  jmsfHttp.get({
+    url: Api.GetConfig,
+    params: {
+      marketId: 1,
+      functionType,
+    },
+  });
+
+// 获取收费单数据
+export const getFormData = (params) =>
+  jmsfHttp.get({
+    url: Api.GetFormData,
+    params: {
+      marketId: 1,
+      id: params.id,
+    },
+  });
+
+// 进门收费项目计算(未更正)
+export const calcItems = (data) =>
+  jmsfHttp.post({
+    url: Api.calcItems,
+    data,
+  });
+
+// 进门收费项目，更正操作只计算优惠返点项目
+export const calcItemsDiscount = (data) =>
+  jmsfHttp.post({
+    url: Api.calcItemsDiscount,
+    data,
+  });
+
+// 客户卡号：查询卡与客户信息(姓名，卡号，身份证)
+export const findCardCustomer = (data) =>
+  jmsfHttp.post({
+    url: Api.findCardCustomer,
+    data,
+  });
+
+// 支付方式：获取支付方式
+export const getPayTypes = () =>
+  jmsfHttp.get({
+    url: Api.getPayTypes,
+    params: {
+      marketId: 1,
+    },
+  });
+
+// 货物产地：通过关键字获取包含第三级城市地址
+export const getAddress = (params) =>
+  jmsfHttp.get({
+    url: Api.getAddress,
+    params: {
+      keyword: params.keyword,
+    },
+  });
+
+// 装卸队：获取装卸队数据
+export const findHandTeam = (params) =>
+  jmsfHttp.get({
+    url: Api.findHandTeam,
+    params,
+  });
+
+/**
+ * 检索条件配置页
+ */
+// 获取检索条件配置
 export const getSearchConf = () =>
   jmsfHttp.get({
-    url: ConfigApi.getSearchConf,
+    url: Api.getSearchConf,
     params: {
       id: 1, // ty_todo 用户id?
     },
   });
 
-// --------------------- 列表页 -------------------------
+/**
+ * 进门单列表页
+ */
+// 部门信息：通过名字与ID关键字查询
 export const findDep = () =>
   jmsfHttp.get({
     url: Api.findDep,
@@ -75,6 +153,17 @@ export const findDep = () =>
     },
   });
 
+// 关联区域：通过部门ID获取
+export const findDistrictByDepId = (params) =>
+  jmsfHttp.get({
+    url: Api.findDistrictByDepId,
+    params: {
+      depId: params.depId,
+      marketId: 1,
+    },
+  });
+
+// 接车员：通过姓名查询员工信息(接车员)
 export const findByUserName = (params) =>
   jmsfHttp.get({
     url: Api.findByUserName,
@@ -84,6 +173,7 @@ export const findByUserName = (params) =>
     },
   });
 
+// 车型：通过关键字获取车型（默认全部）
 export const findJmsfCarType = (params) =>
   jmsfHttp.get({
     url: Api.findJmsfCarType,
@@ -95,12 +185,7 @@ export const findJmsfCarType = (params) =>
     },
   });
 
-export const findCardCustomer = (data) =>
-  jmsfHttp.post({
-    url: Api.findCardCustomer,
-    data,
-  });
-
+// 证明类型：获取市场的证明类型
 export const listProves = () => {
   jmsfHttp.get({
     url: Api.findProduct,
@@ -110,6 +195,7 @@ export const listProves = () => {
   });
 };
 
+// 商品信息、品类信息：通过名字关键字查询商品与品类信息
 export const findProduct = (params) =>
   jmsfHttp.get({
     url: Api.findProduct,
@@ -119,15 +205,7 @@ export const findProduct = (params) =>
     },
   });
 
-export const findDistrictByDepId = (params) =>
-  jmsfHttp.get({
-    url: Api.findDistrictByDepId,
-    params: {
-      depId: params.depId,
-      marketId: 1,
-    },
-  });
-
+// 货物标签：获取市场的货物标签
 export const listGoodsTags = () =>
   jmsfHttp.get({
     url: Api.listGoodsTags,
@@ -141,6 +219,7 @@ export const listGoodsTags = () =>
     },
   });
 
+// 称重类型：获取市场的称重类型
 export const findWeighType = () =>
   jmsfHttp.get({
     url: Api.findWeighType,
@@ -154,6 +233,7 @@ export const findWeighType = () =>
     },
   });
 
+// 状态：进门单状态
 export const getStatus = () =>
   jmsfHttp.get({
     url: Api.getStatus,
@@ -167,6 +247,7 @@ export const getStatus = () =>
     },
   });
 
+// 交易类型: 获取市场交易类型
 export const getTradeType = () =>
   jmsfHttp.get({
     url: Api.getTradeType,
@@ -179,19 +260,3 @@ export const getTradeType = () =>
       return res;
     },
   });
-
-// ----------------------- 收费单详情 --------------------------
-/**
- * 获取收费单配置
- */
-export const getConfig = (functionType) =>
-  jmsfHttp.get({
-    url: Api.GetConfig,
-    params: {
-      marketId: 1,
-      functionType,
-    },
-  });
-
-export const getFormData = () => jmsfHttp.get({ url: Api.GetFormData });
-export const getForm = () => jmsfHttp.get({ url: Api.GetForm });

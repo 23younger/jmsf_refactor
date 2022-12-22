@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { getConfig, getFormData } from '/@/api/jmsf/jmsfList';
+  import { getConfig, getFormData, calcItems } from '/@/api/jmsf/jmsfList';
   import { cusExpandIcon } from '../common';
   import { Collapse, CollapsePanel } from 'ant-design-vue';
   import { onMounted, onUnmounted, ref, defineEmits } from 'vue';
@@ -37,7 +37,6 @@
   const props = defineProps({
     id: String,
   });
-  console.log('props', props);
   const emit = defineEmits(['set-modal']);
   const activeKey = ref(['basic', 'pay', 'other']);
   const loading = ref<boolean>(false);
@@ -75,10 +74,24 @@
   const cancel = () => {
     emit('set-modal', { visible: false });
   };
+  const initData = async () => {
+    // 1、读取基础数据
+    const formData = await getFormData({
+      id: props.id,
+    });
+    // 2、读取费用数据
+    const calcResult = await calcItems({});
+    console.log('calcResult', calcResult);
+    // 2、处理数据
+    formModel.value = {
+      ...formData,
+    };
+  };
   // ty_todo 处理配置信息及表格详情数据
   onMounted(async () => {
     try {
       emit('set-modal', { loading: true });
+      // 1、读取配置
       const config = await getConfig('preview');
       if (config && config.length) {
         const config_basic = config.filter((v) => v.groupType === 1);
@@ -100,31 +113,10 @@
         await resetBasicSchema(schemas_basic);
         await resetPaySchema(schemas_pay);
         await resetOtherSchema(schemas_other);
-        const formData = await getFormData();
-        formModel.value = {
-          ...formData,
-        };
+
+        initData();
       }
       loading.value = false;
-      // formModel.value = {
-      //   region_Info: {
-      //     firstFetch: true,
-      //     id: null,
-      //     number: '',
-      //     options: [
-      //       {
-      //         name: '货区1',
-      //         number: '1234',
-      //         id: 1,
-      //       },
-      //       {
-      //         name: '货区2',
-      //         number: '5678',
-      //         id: 2,
-      //       },
-      //     ],
-      //   },
-      // };
       emit('set-modal', { loading: false });
     } catch (error) {
       emit('set-modal', { loading: false });
@@ -172,6 +164,10 @@
   }
 
   ::v-deep(.ant-input[disabled]) {
+    color: #000;
+  }
+
+  ::v-deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
     color: #000;
   }
 </style>

@@ -116,4 +116,4 @@ export type ComponentType =
   | 'NewDatePicker'
   | 'NewRangePicker'
   | 'ApiAutoComplete'
-  | 'InputLinkSelect';
+  | 'areaInfoComp';

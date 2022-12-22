@@ -61,7 +61,7 @@
   import { onMounted, onUnmounted, ref, defineEmits, h } from 'vue';
   import { BasicForm, useForm, useComponentRegister } from '/@/components/Form';
   import { schemas_basicInfo, schemas_payInfo } from './form';
-  import InputLinkSelect from '../../../components/InputLinkSelect.vue';
+  import areaInfoComp from '../../../components/areaInfoComp.vue';
   const cusExpandIcon = (props) => {
     if (props.isActive) {
       return h(
@@ -95,7 +95,7 @@
   const payInfo = ref([]);
   const otherInfo = ref([]);
   const formModel = ref<object>({});
-  useComponentRegister('InputLinkSelect', InputLinkSelect);
+  useComponentRegister('areaInfoComp', areaInfoComp);
   const [
     registerBasicInfo,
     { validate: validateBasicInfo, getFieldsValue: getFieldsValue_basicInfo },

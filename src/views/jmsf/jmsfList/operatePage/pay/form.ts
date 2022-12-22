@@ -1,10 +1,25 @@
 import { FormSchema } from '/@/components/Form';
 import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
-import { handleParkCard, handlePressEnter, viewImgs, calculate, readPassword } from '../common';
+import {
+  handleParkCard,
+  handlePressEnter,
+  viewImgs,
+  calculate,
+  readPassword,
+  handleBankCard,
+} from '../common';
 import { Input, Button } from 'ant-design-vue';
 import utils from '/@/utils/public';
 import payTable from '../components/payTable.vue';
+import {
+  findDep,
+  findDistrictByDepId,
+  findHandTeam,
+  getAddress,
+  getPayTypes,
+  listGoodsTags,
+} from '/@/api/jmsf/jmsfList';
 
 const colProps = {
   span: 6,
@@ -43,7 +58,7 @@ export const schemas_basicInfo: FormSchema[] = [
         onkeyup: (e) => {
           e.target.value = e.target.value.replace(/\D/g, '');
           if (e.target.value && e.keyCode == 13) {
-            handlePressEnter(e.target.value); // 验证卡号，读取该卡号相关信息
+            handlePressEnter(e.target.value, formModel); // 验证卡号，读取该卡号相关信息
           }
         },
         addonAfter: () =>
@@ -57,7 +72,7 @@ export const schemas_basicInfo: FormSchema[] = [
                   marginRight: '5px',
                 },
                 onclick: () => {
-                  handleParkCard('customerIc', formModel);
+                  handleParkCard(formModel);
                 },
               },
               '园区卡',
@@ -68,6 +83,9 @@ export const schemas_basicInfo: FormSchema[] = [
                 style: {
                   color: 'blue',
                   cursor: 'pointer',
+                },
+                onclick: () => {
+                  handleBankCard(formModel);
                 },
               },
               '银行卡',
@@ -112,18 +130,15 @@ export const schemas_basicInfo: FormSchema[] = [
   {
     field: 'enFee_payType',
     component: 'ApiSelect',
-    label: '支付方式', // ty_todo 默认选择刷卡
+    label: '支付方式',
     colProps,
     componentProps: {
-      getPopupContainer: () => {
-        return document.body;
-      },
-      api: optionsListApi,
-      optionFilterProp: 'label',
-      resultField: 'list',
+      api: getPayTypes,
       labelField: 'name',
       valueField: 'id',
+      numberToString: true,
     },
+    defaultValue: 1,
     required: true,
     rules: [{ required: true }],
   },
@@ -301,29 +316,51 @@ export const schemas_basicInfo: FormSchema[] = [
         getPopupContainer: () => {
           return document.body;
         },
-        api: optionsListApi,
-        optionFilterProp: 'label',
-        resultField: 'list',
-        labelField: 'name',
+        api: findDep,
+        labelField: 'depName',
         valueField: 'id',
-        onChange: (val) => {
-          console.log('val', val);
+        numberToString: true,
+        onChange: async (val) => {
+          // 货区
+          const regionInfo = await findDistrictByDepId({
+            depId: val,
+          });
           formModel['region_Info'] = {
             id: null,
             name: '',
-            options: [
-              {
-                name: '货区3',
-                number: '2345',
-                id: 3,
-              },
-              {
-                name: '货区4',
-                number: '6789',
-                id: 4,
-              },
-            ],
+            options: regionInfo,
           };
+          // 装卸队
+          const handTeams = await findHandTeam({
+            productId: 8, // 商品id
+            departmentId: val,
+          });
+          const { payRef } = formModel['refs'];
+          const { updateSchema, setFieldsValue } = payRef;
+          updateSchema({
+            field: 'steveTeamOrder_steveTeam',
+            component: 'Select',
+            label: '装卸队',
+            colProps: colProps1,
+            componentProps: ({ formModel }) => {
+              return {
+                options: handTeams.map((v) => {
+                  return {
+                    key: v.id,
+                    label: v.teamName,
+                    value: v.id,
+                  };
+                }),
+                onChange: (val) => {
+                  console.log('e....', val);
+                  calculate(formModel);
+                },
+              };
+            },
+          });
+          setFieldsValue({
+            steveTeamOrder_steveTeam: 29,
+          });
         },
       };
     },
@@ -332,12 +369,9 @@ export const schemas_basicInfo: FormSchema[] = [
   },
   {
     field: 'region_Info',
-    component: 'InputLinkSelect',
+    component: 'areaInfoComp',
     label: '货区区域',
     colProps,
-    componentProps: {
-      // disabled: true,
-    },
     rules: [
       {
         validator(_, value) {
@@ -347,7 +381,6 @@ export const schemas_basicInfo: FormSchema[] = [
             return Promise.reject('请填写货区区域');
           }
         },
-        trigger: 'blur',
       },
     ],
     required: true,
@@ -369,11 +402,13 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '货物产地',
     colProps,
     componentProps: {
-      api: optionsListApi,
-      resultField: 'list',
-      valueField: 'id',
+      getPopupContainer: () => {
+        return document.body;
+      },
+      api: getAddress,
+      valueField: 'name',
       valueFormat: 'name',
-      searchKey: 'query',
+      searchKey: 'keyword',
       errTxt: '该地域名称不存在，请重新输入',
     },
     required: true,
@@ -381,18 +416,10 @@ export const schemas_basicInfo: FormSchema[] = [
   },
   {
     field: 'tradeHall_tradeTypeName',
-    component: 'ApiSelect',
+    component: 'Input',
     label: '交易类型',
     colProps,
     componentProps: {
-      getPopupContainer: () => {
-        return document.body;
-      },
-      api: optionsListApi,
-      optionFilterProp: 'label',
-      resultField: 'list',
-      labelField: 'name',
-      valueField: 'id',
       disabled: true,
     },
   },
@@ -412,7 +439,7 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: ({ formModel }) => {
       return {
-        // disabled: true,
+        disabled: true,
         suffix: '元',
         addonAfter: () =>
           h(
@@ -480,27 +507,21 @@ export const schemas_basicInfo: FormSchema[] = [
   },
   {
     field: 'enFee_created',
-    component: 'NewDatePicker',
-    componentProps: {
-      disabled: true,
-      showTime: {
-        format: 'HH:mm:ss',
-      },
-    },
+    component: 'Input',
     label: '进场时间',
     colProps,
+    componentProps: {
+      disabled: true,
+    },
   },
   {
     field: 'enFee_paymentTime',
-    component: 'NewDatePicker',
-    componentProps: {
-      disabled: true,
-      showTime: {
-        format: 'HH:mm:ss',
-      },
-    },
+    component: 'Input',
     label: '收费时间',
     colProps,
+    componentProps: {
+      disabled: true,
+    },
   },
   {
     field: 'enFee.cashierName',
@@ -564,15 +585,12 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '货物标签', // 沈阳市场不可修改
     colProps,
     componentProps: {
-      getPopupContainer: () => {
-        return document.body;
-      },
-      api: optionsListApi,
-      optionFilterProp: 'label',
-      resultField: 'list',
+      api: listGoodsTags,
       labelField: 'name',
       valueField: 'id',
+      disabled: true,
     },
+    defaultValue: 1,
   },
 ];
 
@@ -585,26 +603,9 @@ export const schemas_payInfo: FormSchema[] = [
   },
   {
     field: 'steveTeamOrder_steveTeam',
-    component: 'ApiSelect',
+    component: 'Select',
     label: '装卸队',
     colProps: colProps1,
-    componentProps: ({ formModel }) => {
-      return {
-        getPopupContainer: () => {
-          return document.body;
-        },
-        onChange: (val) => {
-          console.log('e....', val);
-          calculate(formModel);
-        },
-        api: optionsListApi,
-        optionFilterProp: 'label',
-        resultField: 'list',
-        labelField: 'name',
-        valueField: 'id',
-        // disabled: true,
-      };
-    },
   },
   {
     field: 'steveTeamOrder_steveRatio',
@@ -936,15 +937,12 @@ export const schemas_otherInfo: FormSchema[] = [
   },
   {
     field: 'detail_operatorTime',
-    component: 'NewDatePicker',
-    componentProps: {
-      disabled: true,
-      showTime: {
-        format: 'HH:mm:ss',
-      },
-    },
+    component: 'Input',
     label: '退款时间',
     colProps,
+    componentProps: {
+      disabled: true,
+    },
   },
 ];
 

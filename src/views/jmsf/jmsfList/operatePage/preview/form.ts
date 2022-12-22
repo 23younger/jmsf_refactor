@@ -1,9 +1,9 @@
 import { FormSchema } from '/@/components/Form';
-import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
 import { viewImgs } from '../common';
 import { Input, Button } from 'ant-design-vue';
 import payTable from '../components/payTable.vue';
+import { getPayTypes, listGoodsTags } from '/@/api/jmsf/jmsfList';
 
 const colProps = {
   span: 6,
@@ -11,13 +11,6 @@ const colProps = {
 
 const colProps1 = {
   span: 4,
-};
-
-export const itemRef = {
-  field: 'refs',
-  label: '暂存实例',
-  component: 'Render',
-  ifShow: false,
 };
 
 export const schemas_basicInfo: FormSchema[] = [
@@ -83,13 +76,11 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: {
       disabled: true,
-      api: optionsListApi,
-      optionFilterProp: 'label',
-      resultField: 'list',
+      api: getPayTypes,
       labelField: 'name',
       valueField: 'id',
     },
-    required: true,
+    defaultValue: 1,
   },
   {
     field: 'enFee_plate',
@@ -160,13 +151,6 @@ export const schemas_basicInfo: FormSchema[] = [
     required: ({ model }) => {
       return model['enFee_type'] == 1 ? true : false;
     },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_type'] == 1) {
-        return [{ required: true, message: '请输入毛重' }];
-      }
-      return [{ required: false }];
-    },
   },
   {
     field: 'wRecord_tareWeight',
@@ -179,13 +163,6 @@ export const schemas_basicInfo: FormSchema[] = [
     },
     required: ({ model }) => {
       return model['enFee_type'] == 1 ? true : false;
-    },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_type'] == 1) {
-        return [{ required: true, message: '请输入皮重' }];
-      }
-      return [{ required: false }];
     },
   },
   {
@@ -210,13 +187,6 @@ export const schemas_basicInfo: FormSchema[] = [
     required: ({ model }) => {
       return model['enFee_type'] == 2 ? true : false;
     },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_type'] == 2) {
-        return [{ required: true, message: '请输入件数' }];
-      }
-      return [{ required: false }];
-    },
   },
   {
     field: 'goods_itemWeight',
@@ -229,13 +199,6 @@ export const schemas_basicInfo: FormSchema[] = [
     },
     required: ({ model }) => {
       return model['enFee_type'] == 2 ? true : false;
-    },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_type'] == 2) {
-        return [{ required: true, message: '请输入件重' }];
-      }
-      return [{ required: false }];
     },
   },
   {
@@ -250,45 +213,35 @@ export const schemas_basicInfo: FormSchema[] = [
   },
   {
     field: 'enFee_depName',
-    component: 'ApiSelect',
+    component: 'Input',
     label: '接车部门',
     colProps,
-    componentProps: () => {
-      return {
-        disabled: true,
-        api: optionsListApi,
-        optionFilterProp: 'label',
-        resultField: 'list',
-        labelField: 'name',
-        valueField: 'id',
-      };
+    componentProps: {
+      disabled: true,
     },
     required: true,
   },
   {
     field: 'region_Info',
-    component: 'InputLinkSelect',
+    component: 'areaInfoComp',
     label: '货区区域',
     colProps,
     componentProps: {
       disabled: true,
     },
-    itemProps: {
-      validateFirst: false,
-      rules: [
-        {
-          validator(_, value) {
-            console.log('validate', value);
-            if (value.id) {
-              return Promise.resolve();
-            } else {
-              return Promise.reject('请填写货区区域');
-            }
-          },
+    required: true,
+    rules: [
+      {
+        validator(_, value) {
+          console.log('validate', value);
+          if (value.id) {
+            return Promise.resolve();
+          } else {
+            return Promise.reject('请填写货区区域');
+          }
         },
-      ],
-      // required: true,
-    },
+      },
+    ],
   },
   {
     field: 'goods_productName',
@@ -301,29 +254,19 @@ export const schemas_basicInfo: FormSchema[] = [
   },
   {
     field: 'goods_origin',
-    component: 'ApiAutoComplete',
+    component: 'Input',
     label: '货物产地',
     colProps,
     componentProps: {
-      popupContainerBody: true,
-      api: optionsListApi,
-      resultField: 'list',
-      fieldKey: 'name',
-      valueFormat: 'name',
       disabled: true,
     },
   },
   {
     field: 'tradeHall_tradeTypeName',
-    component: 'ApiSelect',
+    component: 'Input',
     label: '交易类型',
     colProps,
     componentProps: {
-      api: optionsListApi,
-      optionFilterProp: 'label',
-      resultField: 'list',
-      labelField: 'name',
-      valueField: 'id',
       disabled: true,
     },
   },
@@ -365,27 +308,21 @@ export const schemas_basicInfo: FormSchema[] = [
   },
   {
     field: 'enFee_created',
-    component: 'NewDatePicker',
-    componentProps: {
-      disabled: true,
-      showTime: {
-        format: 'HH:mm:ss',
-      },
-    },
+    component: 'Input',
     label: '进场时间',
     colProps,
+    componentProps: {
+      disabled: true,
+    },
   },
   {
     field: 'enFee_paymentTime',
-    component: 'NewDatePicker',
-    componentProps: {
-      disabled: true,
-      showTime: {
-        format: 'HH:mm:ss',
-      },
-    },
+    component: 'Input',
     label: '收费时间',
     colProps,
+    componentProps: {
+      disabled: true,
+    },
   },
   {
     field: 'enFee.cashierName',
@@ -450,13 +387,12 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '货物标签',
     colProps,
     componentProps: {
-      api: optionsListApi,
-      optionFilterProp: 'label',
-      resultField: 'list',
+      api: listGoodsTags,
       labelField: 'name',
       valueField: 'id',
       disabled: true,
     },
+    defaultValue: 1,
   },
 ];
 
@@ -765,14 +701,11 @@ export const schemas_otherInfo: FormSchema[] = [
   },
   {
     field: 'detail_operatorTime',
-    component: 'NewDatePicker',
+    component: 'Input',
+    label: '退款时间',
     componentProps: {
       disabled: true,
-      showTime: {
-        format: 'HH:mm:ss',
-      },
     },
-    label: '退款时间',
     colProps,
   },
 ];

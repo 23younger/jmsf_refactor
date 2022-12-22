@@ -2,7 +2,15 @@ import { FormSchema } from '/@/components/Form';
 import { optionsListApi } from '/@/api/demo/select';
 import { h } from 'vue';
 import { viewImgs } from '../common';
+import payTable from '../components/payTable.vue';
 import { Input, Button } from 'ant-design-vue';
+import {
+  findDep,
+  findDistrictByDepId,
+  getAddress,
+  getPayTypes,
+  listGoodsTags,
+} from '/@/api/jmsf/jmsfList';
 
 const colProps = {
   span: 6,
@@ -13,6 +21,12 @@ const colProps1 = {
 };
 
 export const schemas_basicInfo: FormSchema[] = [
+  {
+    field: 'refs',
+    label: '暂存实例',
+    component: 'Render',
+    ifShow: false,
+  },
   {
     field: 'enFee_ic',
     component: 'Input',
@@ -70,16 +84,11 @@ export const schemas_basicInfo: FormSchema[] = [
     colProps,
     componentProps: {
       disabled: true,
-      getPopupContainer: () => {
-        return document.body;
-      },
-      api: optionsListApi,
-      optionFilterProp: 'label',
-      resultField: 'list',
+      api: getPayTypes,
       labelField: 'name',
       valueField: 'id',
     },
-    required: true,
+    defaultValue: 1,
   },
   {
     field: 'enFee_plate',
@@ -150,13 +159,6 @@ export const schemas_basicInfo: FormSchema[] = [
     required: ({ model }) => {
       return model['enFee_payType'] == 2 ? true : false;
     },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_payType'] == 2) {
-        return [{ required: true, message: '请输入毛重' }];
-      }
-      return [{ required: false }];
-    },
   },
   {
     field: 'wRecord_tareWeight',
@@ -169,13 +171,6 @@ export const schemas_basicInfo: FormSchema[] = [
     },
     required: ({ model }) => {
       return model['enFee_payType'] == 2 ? true : false;
-    },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_payType'] == 2) {
-        return [{ required: true, message: '请输入皮重' }];
-      }
-      return [{ required: false }];
     },
   },
   {
@@ -200,13 +195,6 @@ export const schemas_basicInfo: FormSchema[] = [
     required: ({ model }) => {
       return model['enFee_payType'] == 2 ? true : false;
     },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_payType'] == 2) {
-        return [{ required: true, message: '请输入皮重' }];
-      }
-      return [{ required: false }];
-    },
   },
   {
     field: 'goods_itemWeight',
@@ -219,13 +207,6 @@ export const schemas_basicInfo: FormSchema[] = [
     },
     required: ({ model }) => {
       return model['enFee_payType'] == 2 ? true : false;
-    },
-    dynamicRules: ({ model }) => {
-      // ty_todo 动态规则
-      if (model['enFee_payType'] == 2) {
-        return [{ required: true, message: '请输入皮重' }];
-      }
-      return [{ required: false }];
     },
   },
   {
@@ -248,28 +229,18 @@ export const schemas_basicInfo: FormSchema[] = [
         getPopupContainer: () => {
           return document.body;
         },
-        api: optionsListApi,
-        optionFilterProp: 'label',
-        resultField: 'list',
-        labelField: 'name',
+        api: findDep,
+        labelField: 'depName',
         valueField: 'id',
-        onChange: (val) => {
-          console.log('val', val);
+        numberToString: true,
+        onChange: async (val) => {
+          const regionIfo = await findDistrictByDepId({
+            depId: val,
+          });
           formModel['region_Info'] = {
             id: null,
             name: '',
-            options: [
-              {
-                name: '货区3',
-                number: '2345',
-                id: 3,
-              },
-              {
-                name: '货区4',
-                number: '6789',
-                id: 4,
-              },
-            ],
+            options: regionIfo,
           };
         },
       };
@@ -279,28 +250,21 @@ export const schemas_basicInfo: FormSchema[] = [
   },
   {
     field: 'region_Info',
-    component: 'InputLinkSelect',
+    component: 'areaInfoComp',
     label: '货区区域',
     colProps,
-    componentProps: {
-      // disabled: true,
-    },
-    itemProps: {
-      validateFirst: false,
-      rules: [
-        {
-          validator(_, value) {
-            console.log('validate', value);
-            if (value.id) {
-              return Promise.resolve();
-            } else {
-              return Promise.reject('请填写货区区域');
-            }
-          },
+    rules: [
+      {
+        validator(_, value) {
+          if (value.id) {
+            return Promise.resolve();
+          } else {
+            return Promise.reject('请填写货区区域');
+          }
         },
-      ],
-      required: true,
-    },
+      },
+    ],
+    required: true,
   },
   {
     field: 'goods_productName',
@@ -320,11 +284,10 @@ export const schemas_basicInfo: FormSchema[] = [
       getPopupContainer: () => {
         return document.body;
       },
-      api: optionsListApi,
-      resultField: 'list',
+      api: getAddress,
       valueField: 'name',
       valueFormat: 'name',
-      searchKey: 'query',
+      searchKey: 'keyword',
       errTxt: '该地域名称不存在，请重新输入',
     },
     required: true,
@@ -332,18 +295,10 @@ export const schemas_basicInfo: FormSchema[] = [
   },
   {
     field: 'tradeHall_tradeTypeName',
-    component: 'ApiSelect',
+    component: 'Input',
     label: '交易类型',
     colProps,
     componentProps: {
-      getPopupContainer: () => {
-        return document.body;
-      },
-      api: optionsListApi,
-      optionFilterProp: 'label',
-      resultField: 'list',
-      labelField: 'name',
-      valueField: 'id',
       disabled: true,
     },
   },
@@ -385,27 +340,21 @@ export const schemas_basicInfo: FormSchema[] = [
   },
   {
     field: 'enFee_created',
-    component: 'NewDatePicker',
-    componentProps: {
-      disabled: true,
-      showTime: {
-        format: 'HH:mm:ss',
-      },
-    },
+    component: 'Input',
     label: '进场时间',
     colProps,
+    componentProps: {
+      disabled: true,
+    },
   },
   {
     field: 'enFee_paymentTime',
-    component: 'NewDatePicker',
-    componentProps: {
-      disabled: true,
-      showTime: {
-        format: 'HH:mm:ss',
-      },
-    },
+    component: 'Input',
     label: '收费时间',
     colProps,
+    componentProps: {
+      disabled: true,
+    },
   },
   {
     field: 'enFee.cashierName',
@@ -469,20 +418,22 @@ export const schemas_basicInfo: FormSchema[] = [
     label: '货物标签',
     colProps,
     componentProps: {
-      getPopupContainer: () => {
-        return document.body;
-      },
-      api: optionsListApi,
-      optionFilterProp: 'label',
-      resultField: 'list',
+      api: listGoodsTags,
       labelField: 'name',
       valueField: 'id',
       disabled: true,
     },
+    defaultValue: 1,
   },
 ];
 
 export const schemas_payInfo: FormSchema[] = [
+  {
+    field: 'refs',
+    label: '暂存实例',
+    component: 'Render',
+    ifShow: false,
+  },
   {
     field: 'steveTeamOrder_steveTeam',
     component: 'ApiSelect',
@@ -522,6 +473,7 @@ export const schemas_payInfo: FormSchema[] = [
         { key: '9', label: '90%', value: '90' },
         { key: '10', label: '100%', value: '100' },
       ],
+      disabled: true,
     },
     defaultValue: '',
   },
@@ -561,9 +513,31 @@ export const schemas_payInfo: FormSchema[] = [
       disabled: true,
     },
   },
+  {
+    field: 'testtable',
+    component: 'Input',
+    label: '',
+    itemProps: {
+      labelCol: {
+        span: 0,
+      },
+      wrapperCol: {
+        span: 24,
+      },
+    },
+    render: ({ model, field }) => {
+      return h(payTable, { model, field });
+    },
+  },
 ];
 
 export const schemas_otherInfo: FormSchema[] = [
+  {
+    field: 'refs',
+    label: '暂存实例',
+    component: 'Render',
+    ifShow: false,
+  },
   {
     field: 'totalAndFeeItem_receivableView',
     component: 'Input',
@@ -762,6 +736,7 @@ export const schemas_otherInfo: FormSchema[] = [
     },
     label: '货主手机',
   },
+  // ty_todo 收费部门待提供接口
   {
     field: 'enFee_feeDepName',
     component: 'ApiSelect',
